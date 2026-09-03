@@ -5,6 +5,25 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
 <title>WSET Level 2 — question bank</title>
+<script>
+// Resolve and apply the theme before first paint to avoid a flash of the wrong theme.
+// Shares the "wset-theme" localStorage key with the main index.html page (same origin)
+// so the choice made there carries over here, including when embedded in its iframe tab.
+(function() {
+  var KEY = 'wset-theme';
+  var stored = null;
+  try { stored = localStorage.getItem(KEY); } catch (e) {}
+  var theme = stored === 'light' || stored === 'dark' ? stored :
+    (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', theme);
+  window.addEventListener('message', function(ev) {
+    if (ev.data && ev.data.type === 'wset-theme' && (ev.data.value === 'light' || ev.data.value === 'dark')) {
+      document.documentElement.setAttribute('data-theme', ev.data.value);
+      try { localStorage.setItem(KEY, ev.data.value); } catch (e) {}
+    }
+  });
+})();
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet">
@@ -25,8 +44,7 @@
   --serif:"Newsreader",Georgia,"Times New Roman",serif;
   --sans:"Archivo",system-ui,-apple-system,"Segoe UI",sans-serif;
 }
-@media (prefers-color-scheme:dark){
-  :root{
+:root[data-theme="dark"]{
     --paper:#171317; --card:#211B21; --ink:#EDE6E9; --muted:#A2949B; --rule:#392F37;
     --right:#6FBF95; --wrong:#E4788C;
     --right-bg:rgba(111,191,149,.10); --wrong-bg:rgba(228,120,140,.10);
@@ -37,7 +55,6 @@
     --h4:#DE9A5C; --h4s:rgba(222,154,92,.14);
     --h5:#B58CC0; --h5s:rgba(181,140,192,.14);
     --on-hue:#171317;
-  }
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0;background:var(--paper);color:var(--ink)}

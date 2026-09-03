@@ -4,18 +4,43 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>WSET Grape &amp; Region Reference</title>
+<script>
+// Resolve and apply the theme before first paint to avoid a flash of the wrong theme.
+(function() {
+  var KEY = 'wset-theme';
+  var stored = null;
+  try { stored = localStorage.getItem(KEY); } catch (e) {}
+  var theme = stored === 'light' || stored === 'dark' ? stored :
+    (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', theme);
+})();
+</script>
 <style>
   * { box-sizing: border-box; }
-  body { margin: 0; background: #faf7f2; color: #2b211c; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-  .tabbar { display: flex; gap: 4px; padding: 14px 22px 0; background: #faf7f2; border-bottom: 2px solid #7a2436; }
-  @media (prefers-color-scheme: dark) { body { background: #1c1815; color: #efe8df; } .tabbar { background: #1c1815; } }
-  .tabbtn { font-family: Georgia, serif; font-size: 15px; padding: 10px 22px; border: 1px solid #e4dcd2; border-bottom: none;
-    border-radius: 8px 8px 0 0; background: #f3e2e6; color: #6b5d54; cursor: pointer; margin-bottom: -2px; }
-  .tabbtn.active { background: #7a2436; color: #fff; border-color: #7a2436; }
-  .tabbtn:not(.active):hover { background: #f6ecd7; }
+  :root {
+    --page-bg: #faf7f2; --page-ink: #2b211c; --page-tabbar-bg: #faf7f2;
+    --page-tabbtn-bg: #f3e2e6; --page-tabbtn-ink: #6b5d54; --page-tabbtn-hover: #f6ecd7;
+    --page-tabbtn-line: #e4dcd2; --page-wine: #7a2436;
+  }
+  html[data-theme="dark"] {
+    --page-bg: #1c1815; --page-ink: #efe8df; --page-tabbar-bg: #1c1815;
+    --page-tabbtn-bg: #3a2229; --page-tabbtn-ink: #b3a99c; --page-tabbtn-hover: #362b16;
+    --page-tabbtn-line: #3a332c; --page-wine: #e08a9b;
+  }
+  body { margin: 0; background: var(--page-bg); color: var(--page-ink); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  .tabbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 22px 0; background: var(--page-tabbar-bg); border-bottom: 2px solid var(--page-wine); }
+  .tabs { display: flex; gap: 4px; }
+  .tabbtn { font-family: Georgia, serif; font-size: 15px; padding: 10px 22px; border: 1px solid var(--page-tabbtn-line); border-bottom: none;
+    border-radius: 8px 8px 0 0; background: var(--page-tabbtn-bg); color: var(--page-tabbtn-ink); cursor: pointer; margin-bottom: -2px; }
+  .tabbtn.active { background: var(--page-wine); color: #fff; border-color: var(--page-wine); }
+  .tabbtn:not(.active):hover { background: var(--page-tabbtn-hover); }
+  #themeToggle { font-family: Georgia, serif; font-size: 13px; padding: 7px 14px; margin-bottom: 10px; border-radius: 100px;
+    border: 1px solid var(--page-tabbtn-line); background: var(--page-tabbtn-bg); color: var(--page-tabbtn-ink); cursor: pointer;
+    display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+  #themeToggle:hover { background: var(--page-tabbtn-hover); }
   .view { display: none; }
   .view.active { display: block; }
-  #loadingMsg { padding: 40px; text-align: center; color: #6b5d54; font-size: 13px; }
+  #loadingMsg { padding: 40px; text-align: center; color: var(--page-tabbtn-ink); font-size: 13px; }
 
   #view-atlas {
     --bg: #faf7f2; --panel: #ffffff; --ink: #2b211c; --ink-soft: #6b5d54;
@@ -27,16 +52,14 @@
     --scale-acid: #a9c98a; --scale-tan: #b79bc4; --scale-body: #a89685;
     --text-scale: 1.2;
   }
-  @media (prefers-color-scheme: dark) {
-    #view-atlas {
-      --bg: #1c1815; --panel: #262019; --ink: #efe8df; --ink-soft: #b3a99c;
-      --line: #3a332c; --wine: #e08a9b; --wine-soft: #3a2229; --wine-line: #6e2f3c;
-      --gold: #d9ac5e; --gold-soft: #362b16; --gold-line: #6e551f;
-      --mixed: #a6d859;
-      --map-land: #2a2620; --map-line: #3a352c; --dim: #7d7264;
-      --scale-empty: #3a332c; --scale-cool: #5f8ab5; --scale-mod: #ffffff; --scale-warm: #b5654a;
-      --scale-acid: #7a9a5c; --scale-tan: #8a6f9b; --scale-body: #7d6d5c;
-    }
+  html[data-theme="dark"] #view-atlas {
+    --bg: #1c1815; --panel: #262019; --ink: #efe8df; --ink-soft: #b3a99c;
+    --line: #3a332c; --wine: #e08a9b; --wine-soft: #3a2229; --wine-line: #6e2f3c;
+    --gold: #d9ac5e; --gold-soft: #362b16; --gold-line: #6e551f;
+    --mixed: #a6d859;
+    --map-land: #2a2620; --map-line: #3a352c; --dim: #7d7264;
+    --scale-empty: #3a332c; --scale-cool: #5f8ab5; --scale-mod: #ffffff; --scale-warm: #b5654a;
+    --scale-acid: #7a9a5c; --scale-tan: #8a6f9b; --scale-body: #7d6d5c;
   }
   
   
@@ -132,10 +155,19 @@
     --cool:#8fb8dd; --mod:#f5e6a8; --warm:#d98f6b;
     --acid:#a9c98a; --tan:#b79bc4; --body:#a89685; --sweet:#e0a840;
     --silver:#b9bcbf; --brown:#8a5a33; --empty:#e4dcd2;
-    --text-scale: 1;
+    --stripe:#f7f3ec; --fic-off:#d8d2c6;
+    --text-scale: 1.2;
   }
-  
-  
+  html[data-theme="dark"] #view-grapes {
+    --bg:#1c1815; --panel:#262019; --ink:#efe8df; --ink-soft:#b3a99c; --line:#3a332c;
+    --wine:#e08a9b; --wine-soft:#3a2229; --gold:#d9ac5e; --gold-soft:#362b16;
+    --cool:#5f8ab5; --mod:#c9ac52; --warm:#b5654a;
+    --acid:#7a9a5c; --tan:#8a6f9b; --body:#7d6d5c; --sweet:#c99a3f;
+    --silver:#8a8d90; --brown:#c9835a; --empty:#3a332c;
+    --stripe:#211c17; --fic-off:#4a423a;
+  }
+
+
   #view-grapes #wrap { max-width:1650px; margin:0 auto; padding:20px 22px 50px; }
   #view-grapes h1 { font-family:Georgia,serif; font-weight:400; font-size:calc(24px * var(--text-scale)); color:var(--wine); margin:0 0 4px; }
   #view-grapes .sub { font-size:calc(12.5px * var(--text-scale)); color:var(--ink-soft); margin:0 0 12px; line-height:1.5; }
@@ -161,7 +193,7 @@
   #view-grapes th .fbtn { cursor:pointer; border:1px solid var(--line); background:var(--panel); border-radius:4px; font-size:calc(9.5px * var(--text-scale)); padding:0px 4px; margin-left:4px; color:var(--ink-soft); }
   #view-grapes th .fbtn.active { background:var(--wine); color:#fff; border-color:var(--wine); }
   #view-grapes td { padding:3px 6px; border-bottom:1px solid var(--line); vertical-align:middle; }
-  #view-grapes tbody tr:nth-child(even) { background:#f7f3ec; }
+  #view-grapes tbody tr:nth-child(even) { background:var(--stripe); }
   #view-grapes tbody tr.hidden { display:none; }
   #view-grapes .gname { font-weight:700; font-size:calc(12.5px * var(--text-scale)); white-space:nowrap; }
   #view-grapes .gname.red { color:var(--wine); }
@@ -180,13 +212,13 @@
   #view-grapes .sq.on.sweet { background:var(--sweet); border-color:var(--sweet); }
   #view-grapes .lbl { font-size:calc(9.5px * var(--text-scale)); color:var(--ink-soft); margin-top:2px; white-space:nowrap; }
   #view-grapes .circ { display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:2px; border:1px solid #8a8175; vertical-align:middle; }
-  #view-grapes .circ.off { background:#fff; }
+  #view-grapes .circ.off { background:var(--panel); }
   #view-grapes .circ.silver.on { background:var(--silver); }
   #view-grapes .circ.brown.on { background:var(--brown); }
   #view-grapes .na, #view-grapes .dash { font-size:calc(10px * var(--text-scale)); color:var(--ink-soft); font-style:italic; }
   #view-grapes .flavcell { white-space:nowrap; }
-  #view-grapes .fic { display:inline-block; width:12px; height:12px; vertical-align:middle; margin-right:3px; }
-  #view-grapes .fic.off { color:#d8d2c6; font-size:calc(8.5px * var(--text-scale)); width:12px; text-align:center; }
+  #view-grapes .fic { display:inline-block; width:17px; height:17px; vertical-align:middle; margin-right:4px; }
+  #view-grapes .fic.off { color:var(--fic-off); font-size:calc(11px * var(--text-scale)); width:17px; text-align:center; }
   #view-grapes th.fcol { width:auto; }
   #view-grapes .regioncell { max-width:320px; overflow-x:auto; white-space:nowrap; font-size:calc(10.5px * var(--text-scale)); color:var(--ink-soft); scrollbar-width:thin; }
   #view-grapes .regioncell .rchip { display:inline-block; background:var(--panel); border:1px solid var(--line); border-radius:100px; padding:1px 6px; margin-right:3px; }
@@ -208,9 +240,12 @@
   <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
   <div class="tabbar">
-    <button class="tabbtn active" data-view="atlas">Atlas</button>
-    <button class="tabbtn" data-view="grapes">Grapes Table</button>
-    <button class="tabbtn" data-view="questions">Questions</button>
+    <div class="tabs">
+      <button class="tabbtn active" data-view="atlas">Atlas</button>
+      <button class="tabbtn" data-view="grapes">Grapes Table</button>
+      <button class="tabbtn" data-view="questions">Questions</button>
+    </div>
+    <button id="themeToggle" aria-label="Toggle dark mode"><span id="themeIcon">&#9789;</span> <span id="themeLabel">Dark</span></button>
   </div>
   <div id="loadingMsg">Loading data&hellip;</div>
   <div id="view-atlas" class="view active">
@@ -560,8 +595,8 @@ const COLUMNS = [
   {key:'body', label:'Body', sortable:true, filterable:'pos', positions:[1,3,5], posLabels:POS_LABEL.body, cls:'scol'},
   {key:'style', label:'Style', sortable:true, filterable:'pos', positions:[1,3,5], posLabels:POS_LABEL.style, cls:'scol'},
   {key:'oaked', label:'Oaked', sortable:true, filterable:'oaked', cls:'scol'},
-  {key:'regions', label:'Regions', sortable:true, filterable:'country', cls:'rcol'},
   {key:'flavors', label:'Flavours', sortable:true, filterable:'flavor', cls:'fcol'},
+  {key:'regions', label:'Regions', sortable:true, filterable:'country', cls:'rcol'},
 ];
 
 let filters = { climate:new Set(), acidity:new Set(), tannins:new Set(), body:new Set(), style:new Set(),
@@ -763,8 +798,8 @@ function renderRow(row) {
     <td class="scalecell">${fiveSquares(row.body,'body')}<div class="lbl">${row.bodyLabel||''}</div></td>
     <td class="scalecell">${fiveSquares(row.style,'sweet')}<div class="lbl">${row.styleLabel||''}</div></td>
     <td class="scalecell">${oakHtml}<div class="lbl">${row.oakedLabel}</div></td>
-    <td class="regioncell">${regionHtml}</td>
     <td class="flavcell">${flavHtml}</td>
+    <td class="regioncell">${regionHtml}</td>
   `;
   return tr;
 }
@@ -806,7 +841,7 @@ document.getElementById('resetBtn').onclick = () => {
   render();
 };
 
-let grapesTextScale = 1;
+let grapesTextScale = 1.2;
 function setGrapesTextScale(v) {
   grapesTextScale = Math.min(1.6, Math.max(0.8, Math.round(v * 10) / 10));
   document.getElementById('view-grapes').style.setProperty('--text-scale', grapesTextScale);
@@ -846,6 +881,40 @@ return { init };
       document.getElementById('view-' + btn.dataset.view).classList.add('active');
     });
   });
+
+  // Dark mode toggle -- shared across Atlas, Grapes Table, and (via the same
+  // localStorage key + postMessage) the Questions tab's iframe.
+  var THEME_KEY = 'wset-theme';
+  var themeToggle = document.getElementById('themeToggle');
+  var themeIcon = document.getElementById('themeIcon');
+  var themeLabel = document.getElementById('themeLabel');
+  var questionsFrame = document.querySelector('#view-questions iframe');
+
+  function currentTheme() { return document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light'; }
+
+  function reflectThemeButton(theme) {
+    if (theme === 'dark') { themeIcon.textContent = '☀️'; themeLabel.textContent = 'Light'; }
+    else { themeIcon.textContent = '🌙'; themeLabel.textContent = 'Dark'; }
+  }
+  reflectThemeButton(currentTheme());
+
+  function notifyQuestionsFrame(theme) {
+    if (!questionsFrame) return;
+    try { questionsFrame.contentWindow.postMessage({ type: 'wset-theme', value: theme }, location.origin); } catch (e) {}
+  }
+
+  themeToggle.addEventListener('click', () => {
+    var next = currentTheme() === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    try { localStorage.setItem(THEME_KEY, next); } catch (e) {}
+    reflectThemeButton(next);
+    notifyQuestionsFrame(next);
+  });
+
+  // The questions iframe loads lazily; once it does, hand it the current theme.
+  if (questionsFrame) {
+    questionsFrame.addEventListener('load', () => notifyQuestionsFrame(currentTheme()));
+  }
 })();
 </script>
 </body>
