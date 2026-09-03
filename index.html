@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WSET Grape &amp; Region Reference</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #faf7f2; color: #2b211c; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  .tabbar { display: flex; gap: 4px; padding: 14px 22px 0; background: #faf7f2; border-bottom: 2px solid #7a2436; }
+  @media (prefers-color-scheme: dark) { body { background: #1c1815; color: #efe8df; } .tabbar { background: #1c1815; } }
+  .tabbtn { font-family: Georgia, serif; font-size: 15px; padding: 10px 22px; border: 1px solid #e4dcd2; border-bottom: none;
+    border-radius: 8px 8px 0 0; background: #f3e2e6; color: #6b5d54; cursor: pointer; margin-bottom: -2px; }
+  .tabbtn.active { background: #7a2436; color: #fff; border-color: #7a2436; }
+  .tabbtn:not(.active):hover { background: #f6ecd7; }
+  .view { display: none; }
+  .view.active { display: block; }
+  #loadingMsg { padding: 40px; text-align: center; color: #6b5d54; font-size: 13px; }
+
+  #view-atlas {
+    --bg: #faf7f2; --panel: #ffffff; --ink: #2b211c; --ink-soft: #6b5d54;
+    --line: #e4dcd2; --wine: #7a2436; --wine-soft: #f3e2e6; --wine-line: #c98a97;
+    --gold: #b5893a; --gold-soft: #f6ecd7; --gold-line: #ddb96a;
+    --mixed: #6a9a1f;
+    --map-land: #efe8dd; --map-line: #d9cfc0; --dim: #b7a996;
+    --scale-empty: #e4dcd2; --scale-cool: #8fb8dd; --scale-mod: #ffffff; --scale-warm: #d98f6b;
+    --scale-acid: #a9c98a; --scale-tan: #b79bc4; --scale-body: #a89685;
+    --text-scale: 1.2;
+  }
+  @media (prefers-color-scheme: dark) {
+    #view-atlas {
+      --bg: #1c1815; --panel: #262019; --ink: #efe8df; --ink-soft: #b3a99c;
+      --line: #3a332c; --wine: #e08a9b; --wine-soft: #3a2229; --wine-line: #6e2f3c;
+      --gold: #d9ac5e; --gold-soft: #362b16; --gold-line: #6e551f;
+      --mixed: #a6d859;
+      --map-land: #2a2620; --map-line: #3a352c; --dim: #7d7264;
+      --scale-empty: #3a332c; --scale-cool: #5f8ab5; --scale-mod: #ffffff; --scale-warm: #b5654a;
+      --scale-acid: #7a9a5c; --scale-tan: #8a6f9b; --scale-body: #7d6d5c;
+    }
+  }
+  
+  
+  #view-atlas #app { max-width: min(1400px, 96vw); margin: 0 auto; padding: 24px 20px 40px; }
+  #view-atlas h1 { font-family: Georgia, "Times New Roman", serif; font-weight: 400; font-size: calc(26px * var(--text-scale)); margin: 0 0 4px; }
+  #view-atlas .toolrow { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-bottom: 8px; }
+  #view-atlas .toolrow span { font-size: 12px; color: var(--ink-soft); }
+  #view-atlas .toolrow button { width: 30px; height: 26px; border-radius: 6px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); cursor: pointer; font-size: 12px; }
+  #view-atlas .toolrow button:hover { border-color: var(--wine-line); }
+  #view-atlas .filter-bar { display: flex; flex-wrap: wrap; gap: 6px; padding: 14px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; margin-bottom: 14px; }
+  #view-atlas .chip { font-size: calc(12.5px * var(--text-scale)); padding: 5px 11px; border-radius: 100px; border: 1px solid var(--line); background: transparent; color: var(--ink-soft); cursor: pointer; white-space: nowrap; transition: all 0.12s ease; }
+  #view-atlas .chip:hover { border-color: var(--wine-line); color: var(--ink); }
+  #view-atlas .chip.active.red { background: var(--wine); border-color: var(--wine); color: #fff; }
+  #view-atlas .chip.active.white { background: var(--gold); border-color: var(--gold); color: var(--ink); }
+  #view-atlas .chip.all { font-weight: 600; }
+  #view-atlas .chip.all.active { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+  #view-atlas .map-shell { position: relative; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; margin-bottom: 14px; height: 600px; min-height: 360px; min-width: 320px; max-width: 100%; resize: both; overflow: hidden; }
+  #view-atlas .map-toolbar { position: absolute; top: 10px; right: 10px; z-index: 5; display: flex; gap: 6px; }
+  #view-atlas .map-toolbar button { width: 28px; height: 28px; border-radius: 6px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); cursor: pointer; font-size: 15px; line-height: 1; }
+  #view-atlas .map-toolbar button:hover { border-color: var(--wine-line); }
+  #view-atlas .resize-hint { position: absolute; bottom: 4px; right: 6px; font-size: 10px; color: var(--ink-soft); opacity: 0.6; z-index: 4; pointer-events: none; }
+  #view-atlas #mapwrap { width: 100%; height: 100%; cursor: grab; }
+  #view-atlas #mapwrap:active { cursor: grabbing; }
+  #view-atlas .region-dot { stroke: var(--bg); stroke-width: 1.5; cursor: pointer; transition: fill 0.15s ease, opacity 0.15s ease; vector-effect: non-scaling-stroke; }
+  #view-atlas .region-dot.comp-red { fill: var(--wine); }
+  #view-atlas .region-dot.comp-white { fill: var(--gold); }
+  #view-atlas .region-dot.comp-mixed { fill: var(--mixed); }
+  #view-atlas .region-dot.dim { fill: var(--dim); opacity: 0.85; }
+  #view-atlas .region-dot.hit-red { fill: var(--wine); opacity: 1; }
+  #view-atlas .region-dot.hit-white { fill: var(--gold); opacity: 1; }
+  #view-atlas .tooltip { position: absolute; pointer-events: none; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; font-size: calc(12.5px * var(--text-scale)); max-width: 260px; box-shadow: 0 4px 16px rgba(0,0,0,0.12); z-index: 10; opacity: 0; transition: opacity 0.1s ease; }
+  #view-atlas .tooltip .path { font-size: calc(11px * var(--text-scale)); color: var(--ink-soft); margin-bottom: 4px; }
+  #view-atlas .tooltip .name { font-weight: 600; font-size: calc(17px * var(--text-scale)); margin-bottom: 6px; }
+  #view-atlas .tooltip .name.name-red { color: var(--wine); }
+  #view-atlas .tooltip .name.name-white { color: var(--gold); }
+  #view-atlas .tooltip .name.name-mixed { color: var(--mixed); }
+  #view-atlas .tooltip .label { font-size: calc(10.5px * var(--text-scale)); text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-soft); margin: 6px 0 2px; }
+  #view-atlas .tooltip .items { line-height: 1.5; }
+  #view-atlas .tooltip .items .grape-item.g-red { color: var(--wine); }
+  #view-atlas .tooltip .items .grape-item.g-white { color: var(--gold); }
+  #view-atlas .status { font-size: 12px; color: var(--ink-soft); padding: 40px; text-align: center; }
+  #view-atlas .desc-panel { display: flex; gap: 18px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; resize: vertical; overflow: auto; min-height: 80px; }
+  #view-atlas .desc-left { flex: 2; min-width: 0; }
+  #view-atlas .desc-mid { flex: 1; min-width: 0; border-left: 1px solid var(--line); padding-left: 16px; display: none; }
+  #view-atlas .desc-right { flex: 1; min-width: 0; border-left: 1px solid var(--line); padding-left: 16px; display: none; }
+  #view-atlas .desc-panel.has-selection .desc-mid { display: block; }
+  #view-atlas .desc-panel.has-selection .desc-right { display: block; }
+  #view-atlas .desc-panel .placeholder { color: var(--ink-soft); font-size: calc(13px * var(--text-scale)); margin: 0; }
+  #view-atlas .desc-panel .heading { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  #view-atlas .desc-panel .swatch { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  #view-atlas .desc-panel .swatch.red { background: var(--wine); }
+  #view-atlas .desc-panel .swatch.white { background: var(--gold); }
+  #view-atlas .desc-panel h2 { font-family: Georgia, "Times New Roman", serif; font-weight: 400; font-size: calc(19px * var(--text-scale)); margin: 0; }
+  #view-atlas .desc-left ul { margin: 0; padding-left: 18px; font-size: calc(13.5px * var(--text-scale)); line-height: 1.7; }
+  #view-atlas .desc-left li { margin-bottom: 2px; }
+  #view-atlas .regions-heading { font-size: calc(11px * var(--text-scale)); text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-soft); margin-bottom: 8px; }
+  #view-atlas .country-group { margin-bottom: 10px; }
+  #view-atlas .country-name { font-weight: 600; font-size: calc(12.5px * var(--text-scale)); margin-bottom: 2px; }
+  #view-atlas .country-group ul { margin: 0 0 0 2px; padding-left: 14px; font-size: calc(12px * var(--text-scale)); line-height: 1.6; color: var(--ink-soft); }
+  #view-atlas .region-link { cursor: pointer; }
+  #view-atlas .region-link.comp-red:hover { color: var(--wine); text-decoration: underline; }
+  #view-atlas .region-link.comp-white:hover { color: var(--gold); text-decoration: underline; }
+  #view-atlas .region-link.comp-mixed:hover { color: var(--mixed); text-decoration: underline; }
+  #view-atlas .mark-high { color: var(--gold); margin-left: 3px; }
+  #view-atlas .mark-low { color: var(--ink-soft); margin-left: 3px; }
+  #view-atlas .scale-row { margin-bottom: 14px; }
+  #view-atlas .scale-label { font-size: calc(11px * var(--text-scale)); text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-soft); margin-bottom: 5px; }
+  #view-atlas .scale-squares { display: flex; gap: 3px; }
+  #view-atlas .scale-squares .sq { width: 18px; height: 18px; border-radius: 3px; background: var(--scale-empty); border: 1px solid var(--line); }
+  #view-atlas .scale-squares .sq.on.climate-cool { background: var(--scale-cool); border-color: var(--scale-cool); }
+  #view-atlas .scale-squares .sq.on.climate-mod { background: var(--scale-mod); border-color: var(--line); }
+  #view-atlas .scale-squares .sq.on.climate-warm { background: var(--scale-warm); border-color: var(--scale-warm); }
+  #view-atlas .scale-squares .sq.on.acidity { background: var(--scale-acid); border-color: var(--scale-acid); }
+  #view-atlas .scale-squares .sq.on.tannins { background: var(--scale-tan); border-color: var(--scale-tan); }
+  #view-atlas .scale-squares .sq.on.body { background: var(--scale-body); border-color: var(--scale-body); }
+  #view-atlas .scale-value { font-size: calc(11.5px * var(--text-scale)); color: var(--ink-soft); margin-top: 3px; }
+  #view-atlas .scale-na { font-size: calc(11.5px * var(--text-scale)); color: var(--ink-soft); font-style: italic; }
+  @media (max-width: 720px) {
+    #view-atlas #app { padding: 16px 12px 28px; }
+    #view-atlas .desc-panel { flex-direction: column; gap: 0; }
+    #view-atlas .desc-mid, #view-atlas .desc-right { border-left: none; padding-left: 0; }
+    #view-atlas .desc-panel.has-selection .desc-mid { border-top: 1px solid var(--line); padding-top: 14px; margin-top: 14px; }
+    #view-atlas .desc-panel.has-selection .desc-right { border-top: 1px solid var(--line); padding-top: 14px; margin-top: 14px; }
+    #view-atlas .map-shell { height: 380px; }
+    #view-atlas .resize-hint { display: none; }
+    #view-atlas .chip { font-size: calc(12px * var(--text-scale)); padding: 5px 9px; }
+  }
+
+
+  #view-grapes {
+    --bg:#faf7f2; --panel:#ffffff; --ink:#2b211c; --ink-soft:#6b5d54; --line:#e4dcd2;
+    --wine:#7a2436; --wine-soft:#f3e2e6; --gold:#b5893a; --gold-soft:#f6ecd7;
+    --cool:#8fb8dd; --mod:#f5e6a8; --warm:#d98f6b;
+    --acid:#a9c98a; --tan:#b79bc4; --body:#a89685; --sweet:#e0a840;
+    --silver:#b9bcbf; --brown:#8a5a33; --empty:#e4dcd2;
+  }
+  
+  
+  #view-grapes #wrap { max-width:1650px; margin:0 auto; padding:20px 22px 50px; }
+  #view-grapes h1 { font-family:Georgia,serif; font-weight:400; font-size:20px; color:var(--wine); margin:0 0 4px; }
+  #view-grapes .sub { font-size:10.5px; color:var(--ink-soft); margin:0 0 12px; line-height:1.5; }
+  #view-grapes .legend { display:flex; flex-wrap:wrap; gap:12px; font-size:9.5px; color:var(--ink-soft); margin-bottom:10px; align-items:center; }
+  #view-grapes .legend .sq { width:8px; height:8px; }
+
+  #view-grapes .toolbar { display:flex; align-items:center; gap:14px; margin-bottom:10px; padding:8px 10px; background:var(--panel); border:1px solid var(--line); border-radius:8px; flex-wrap:wrap; }
+  #view-grapes .colorfilter { display:flex; gap:10px; font-size:11px; align-items:center; }
+  #view-grapes .colorfilter label { display:flex; align-items:center; gap:4px; cursor:pointer; }
+  #view-grapes #resetBtn { font-size:11px; padding:5px 12px; border-radius:100px; border:1px solid var(--wine); background:var(--wine); color:#fff; cursor:pointer; }
+  #view-grapes #resetBtn:hover { opacity:0.85; }
+  #view-grapes #resultCount { font-size:10.5px; color:var(--ink-soft); margin-left:auto; }
+
+  #view-grapes table { border-collapse:collapse; width:100%; }
+  #view-grapes thead th { text-align:left; font-size:9px; text-transform:uppercase; letter-spacing:.03em; color:var(--ink); border-bottom:1.5px solid var(--wine); padding:4px 6px 6px; position:relative; white-space:nowrap; background:var(--bg); }
+  #view-grapes th .hlabel { cursor:pointer; user-select:none; }
+  #view-grapes th .hlabel:hover { color:var(--wine); }
+  #view-grapes th .arrow { font-size:8px; margin-left:2px; color:var(--wine); }
+  #view-grapes th .fbtn { cursor:pointer; border:1px solid var(--line); background:var(--panel); border-radius:4px; font-size:8px; padding:0px 4px; margin-left:4px; color:var(--ink-soft); }
+  #view-grapes th .fbtn.active { background:var(--wine); color:#fff; border-color:var(--wine); }
+  #view-grapes td { padding:3px 6px; border-bottom:1px solid var(--line); vertical-align:middle; }
+  #view-grapes tbody tr:nth-child(even) { background:#f7f3ec; }
+  #view-grapes tbody tr.hidden { display:none; }
+  #view-grapes .gname { font-weight:700; font-size:10.5px; white-space:nowrap; }
+  #view-grapes .gname.red { color:var(--wine); }
+  #view-grapes .gname.white { color:var(--gold); }
+  #view-grapes .gcount { font-weight:400; color:var(--ink-soft); font-size:9px; }
+  #view-grapes th.gcol, #view-grapes td.gname { width:150px; }
+  #view-grapes th.scol, #view-grapes .scalecell { width:82px; }
+  #view-grapes .sq { display:inline-block; width:9px; height:9px; border-radius:2px; margin-right:1.5px; border:1px solid var(--line); vertical-align:middle; }
+  #view-grapes .sq.off { background:var(--empty); }
+  #view-grapes .sq.on.cool { background:var(--cool); }
+  #view-grapes .sq.on.mod { background:var(--mod); }
+  #view-grapes .sq.on.warm { background:var(--warm); }
+  #view-grapes .sq.on.acid { background:var(--acid); border-color:var(--acid); }
+  #view-grapes .sq.on.tannins { background:var(--tan); border-color:var(--tan); }
+  #view-grapes .sq.on.body { background:var(--body); border-color:var(--body); }
+  #view-grapes .sq.on.sweet { background:var(--sweet); border-color:var(--sweet); }
+  #view-grapes .lbl { font-size:7.8px; color:var(--ink-soft); margin-top:2px; white-space:nowrap; }
+  #view-grapes .circ { display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:2px; border:1px solid #8a8175; vertical-align:middle; }
+  #view-grapes .circ.off { background:#fff; }
+  #view-grapes .circ.silver.on { background:var(--silver); }
+  #view-grapes .circ.brown.on { background:var(--brown); }
+  #view-grapes .na, #view-grapes .dash { font-size:8.5px; color:var(--ink-soft); font-style:italic; }
+  #view-grapes .flavcell { white-space:nowrap; }
+  #view-grapes .fic { display:inline-block; width:12px; height:12px; vertical-align:middle; margin-right:3px; }
+  #view-grapes .fic.off { color:#d8d2c6; font-size:7px; width:12px; text-align:center; }
+  #view-grapes th.fcol { width:auto; }
+  #view-grapes .regioncell { max-width:320px; overflow-x:auto; white-space:nowrap; font-size:8.6px; color:var(--ink-soft); scrollbar-width:thin; }
+  #view-grapes .regioncell .rchip { display:inline-block; background:var(--panel); border:1px solid var(--line); border-radius:100px; padding:1px 6px; margin-right:3px; }
+  #view-grapes th.rcol { width:280px; }
+
+  #view-grapes .popover { display:none; position:absolute; top:100%; left:0; z-index:20; background:var(--panel); border:1px solid var(--line); border-radius:8px; box-shadow:0 6px 20px rgba(0,0,0,0.15); padding:8px; margin-top:4px; max-height:260px; overflow-y:auto; min-width:150px; }
+  #view-grapes .popover.open { display:block; }
+  #view-grapes .popover label { display:flex; align-items:center; gap:5px; font-size:10px; font-weight:400; text-transform:none; letter-spacing:0; color:var(--ink); padding:2px 3px; cursor:pointer; white-space:nowrap; }
+  #view-grapes .popover label:hover { background:var(--bg); border-radius:4px; }
+  #view-grapes .popover.flavpop { min-width:230px; columns:2; column-gap:6px; }
+  #view-grapes .popover .picon { width:12px; height:12px; vertical-align:middle; }
+
+</style>
+</head>
+<body>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
+  <div class="tabbar">
+    <button class="tabbtn active" data-view="atlas">Atlas</button>
+    <button class="tabbtn" data-view="grapes">Grapes Table</button>
+  </div>
+  <div id="loadingMsg">Loading data&hellip;</div>
+  <div id="view-atlas" class="view active">
+<div id="app">
+  <h1>Wine grape and region atlas</h1>
+  <div class="toolrow">
+    <span>Text size</span>
+    <button id="textSmaller" aria-label="Decrease text size">A&minus;</button>
+    <button id="textBigger" aria-label="Increase text size">A+</button>
+  </div>
+  <div class="filter-bar" id="filterBar"></div>
+  <div class="map-shell" id="mapShell">
+    <div class="map-toolbar">
+      <button id="zoomIn" aria-label="Zoom in">+</button>
+      <button id="zoomOut" aria-label="Zoom out">&minus;</button>
+      <button id="resetView" aria-label="Reset view">&#8634;</button>
+    </div>
+    <div id="mapwrap"><div class="status">Loading map...</div></div>
+    <div class="tooltip" id="tooltip"></div>
+    <div class="resize-hint">drag corner to resize</div>
+  </div>
+  <div class="desc-panel" id="descPanel">
+    <div class="desc-left" id="descLeft"><p class="placeholder">Select a variety above to see its full description.</p></div>
+    <div class="desc-mid" id="descMid"></div>
+    <div class="desc-right" id="descRight"></div>
+  </div>
+</div>
+
+  </div>
+  <div id="view-grapes" class="view">
+<div id="wrap">
+  <h1>Grape Characteristics &mdash; Interactive Reference</h1>
+  <p class="sub">All 30 grapes. Hover any row for the full characteristics text. Flavour icons sit at a fixed position across every row. Click a column heading to sort; click the &#9660; button to filter by that column (multi-select &mdash; matches if any checked value applies). Scale filters match by position, so "High" also matches ranges like "medium to high".</p>
+  <div class="legend">
+    <span><span class="sq on cool"></span>cool</span>
+    <span><span class="sq on mod"></span>moderate</span>
+    <span><span class="sq on warm"></span>warm</span>
+    <span><span class="sq on acid"></span>acidity low&rarr;high</span>
+    <span><span class="sq on tannins"></span>tannins low&rarr;high (red only)</span>
+    <span><span class="sq on body"></span>body light&rarr;full</span>
+    <span><span class="sq on sweet"></span>style dry&rarr;sweet</span>
+    <span><span class="circ silver on"></span>unoaked <span class="circ brown on"></span>oaked</span>
+  </div>
+
+  <div class="toolbar">
+    <div class="colorfilter">
+      <label><input type="checkbox" class="colorcb" value="red" checked> <span style="color:var(--wine)">&#9679; Red</span></label>
+      <label><input type="checkbox" class="colorcb" value="white" checked> <span style="color:var(--gold)">&#9679; White</span></label>
+    </div>
+    <button id="resetBtn">Reset all filters</button>
+    <span id="resultCount"></span>
+  </div>
+
+  <div class="tablewrap">
+  <table>
+    <thead>
+      <tr id="headRow"></tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+  </table>
+  </div>
+</div>
+  </div>
+
+<script>
+window.AtlasApp = (function() {
+function init(regionsData, grapesData) {
+  const REGIONS = regionsData.regions;
+  const QUALITY_TAGS = regionsData.qualityTags;
+  const GRAPE_INFO = grapesData.grapes.map(g => ({ name: g.name, characteristics: g.characteristics }));
+  const GRAPES = grapesData.grapes.map(g => g.name).sort();
+  const RED_GRAPES = new Set(grapesData.grapes.filter(g => g.isRed).map(g => g.name));
+  const GRAPE_BY_NAME = {};
+  grapesData.grapes.forEach(g => { GRAPE_BY_NAME[g.name] = g; });
+  const BASE_R = 4.5, HIT_R = 9, ZOOM_GROWTH = 0.7;
+
+function isRed(name) { return RED_GRAPES.has(name); }
+function regionCount(name) { return REGIONS.filter(r => r.grapes.includes(name)).length; }
+function grapeInfo(name) { return GRAPE_INFO.find(g => g.name === name); }
+function compClass(grapes) {
+  const allRed = grapes.every(isRed);
+  const allWhite = grapes.every(gn => !isRed(gn));
+  return allRed ? 'comp-red' : allWhite ? 'comp-white' : 'comp-mixed';
+}
+function qualityMarks(grapeName, path) {
+  const tags = QUALITY_TAGS[grapeName + '|' + path.join('>')];
+  if (!tags) return '';
+  let out = '';
+  if (tags.includes('high')) out += '<span class="mark-high" title="Source calls this very good or outstanding">&#9733;</span>';
+  if (tags.includes('low')) out += '<span class="mark-low" title="Source calls this inexpensive or high-volume">&#9660;</span>';
+  return out;
+}
+
+function squaresFromPositions(positions, classes) {
+  if (!positions) return null;
+  const on = new Set(positions);
+  return classes.map((cls, i) => ({ on: on.has(i + 1), cls }));
+}
+function squaresFromRange(range, cls) {
+  if (!range) return null;
+  const [lo, hi] = range;
+  return [1, 2, 3, 4, 5].map(i => ({ on: i >= lo && i <= hi, cls }));
+}
+function renderScaleRow(label, val, squares) {
+  if (!squares) {
+    return `<div class="scale-row"><div class="scale-label">${label}</div></div>`;
+  }
+  const sq = squares.map(s => `<div class="sq ${s.on ? 'on ' + s.cls : ''}"></div>`).join('');
+  return `<div class="scale-row"><div class="scale-label">${label}</div><div class="scale-squares">${sq}</div><div class="scale-value">${val || ''}</div></div>`;
+}
+function renderScales(name) {
+  const g = GRAPE_BY_NAME[name];
+  if (!g) return '';
+  let html = renderScaleRow('Climate', g.climateLabel, squaresFromPositions(g.climate, ['climate-cool', 'climate-mod', 'climate-warm']));
+  html += renderScaleRow('Acidity', g.acidityLabel, squaresFromRange(g.acidity, 'acidity'));
+  if (isRed(name)) {
+    html += renderScaleRow('Tannins', g.tanninsLabel, squaresFromRange(g.tannins, 'tannins'));
+  }
+  html += renderScaleRow('Body', g.bodyLabel, squaresFromRange(g.body, 'body'));
+  return html;
+}
+let textScale = 1.2;
+function setTextScale(v) {
+  textScale = Math.min(1.6, Math.max(0.8, Math.round(v * 10) / 10));
+  document.documentElement.style.setProperty('--text-scale', textScale);
+}
+document.getElementById('textSmaller').onclick = () => setTextScale(textScale - 0.1);
+document.getElementById('textBigger').onclick = () => setTextScale(textScale + 0.1);
+
+const filterBar = document.getElementById('filterBar');
+const descPanel = document.getElementById('descPanel');
+const descLeft = document.getElementById('descLeft');
+const descMid = document.getElementById('descMid');
+const descRight = document.getElementById('descRight');
+let selected = null;
+
+const allChip = document.createElement('button');
+allChip.className = 'chip all active';
+allChip.textContent = 'All varieties';
+allChip.onclick = () => selectGrape(null);
+filterBar.appendChild(allChip);
+
+GRAPES.forEach(name => {
+  const chip = document.createElement('button');
+  chip.className = 'chip ' + (isRed(name) ? 'red' : 'white');
+  chip.textContent = `${name} (${regionCount(name)})`;
+  chip.onclick = () => selectGrape(name);
+  chip.dataset.grape = name;
+  filterBar.appendChild(chip);
+});
+
+function renderRegionsList(name) {
+  const matches = REGIONS.filter(r => r.grapes.includes(name));
+  const byCountry = {};
+  matches.forEach(r => {
+    const country = r.path[0];
+    const label = r.path.length > 1 ? r.path.slice(1).join(' \u2013 ') : 'General';
+    (byCountry[country] = byCountry[country] || []).push({ label, lat: r.lat, lon: r.lon, path: r.path, comp: compClass(r.grapes) });
+  });
+  return Object.keys(byCountry).sort().map(c => {
+    const items = byCountry[c].sort((a, b) => a.label.localeCompare(b.label))
+      .map(it => `<li class="region-link ${it.comp}" onclick="centerOnRegion(${it.lat},${it.lon})">${it.label}${qualityMarks(name, it.path)}</li>`).join('');
+    return `<div class="country-group"><div class="country-name">${c}</div><ul>${items}</ul></div>`;
+  }).join('');
+}
+
+function renderDescription(name) {
+  descPanel.classList.toggle('has-selection', !!name);
+  if (!name) {
+    descLeft.innerHTML = '<p class="placeholder">Select a variety above to see its full description.</p>';
+    descMid.innerHTML = '';
+    descRight.innerHTML = '';
+    return;
+  }
+  const info = grapeInfo(name);
+  const items = info.characteristics.map(c => `<li>${c}</li>`).join('');
+  descLeft.innerHTML =
+    `<div class="heading"><span class="swatch ${isRed(name) ? 'red' : 'white'}"></span><h2>${name}</h2></div>` +
+    `<ul>${items}</ul>`;
+  descMid.innerHTML = renderScales(name);
+  descRight.innerHTML = `<div class="regions-heading">Regions</div>` + renderRegionsList(name);
+}
+
+function resolveOverlaps(k) {
+  const info = REGIONS.map(d => {
+    const [x0, y0] = projection([d.lon, d.lat]);
+    const isHit = selected && d.grapes.includes(selected);
+    const r = (isHit ? HIT_R : BASE_R) / Math.pow(k, ZOOM_GROWTH);
+    return { d, x: x0, y: y0, r };
+  });
+  for (let iter = 0; iter < 4; iter++) {
+    for (let i = 0; i < info.length; i++) {
+      for (let j = i + 1; j < info.length; j++) {
+        const a = info[i], b = info[j];
+        const dx = b.x - a.x, dy = b.y - a.y;
+        const dist = Math.sqrt(dx * dx + dy * dy) || 0.0001;
+        const minDist = (a.r + b.r) * 1.1;
+        if (dist < minDist) {
+          const overlap = (minDist - dist) / 2;
+          const ux = dx / dist, uy = dy / dist;
+          a.x -= ux * overlap; a.y -= uy * overlap;
+          b.x += ux * overlap; b.y += uy * overlap;
+        }
+      }
+    }
+  }
+  return new Map(info.map(o => [o.d, o]));
+}
+
+function updateDotRadii() {
+  const k = d3.zoomTransform(svg.node()).k;
+  const pos = resolveOverlaps(k);
+  g.selectAll('.region-dot')
+    .attr('r', d => pos.get(d).r)
+    .attr('cx', d => pos.get(d).x)
+    .attr('cy', d => pos.get(d).y);
+}
+
+function centerOnRegion(lat, lon) {
+  const [x, y] = projection([lon, lat]);
+  const k = Math.max(d3.zoomTransform(svg.node()).k, 10);
+  const transform = d3.zoomIdentity.translate(width / 2, height / 2).scale(k).translate(-x, -y);
+  svg.transition().duration(600).call(zoom.transform, transform);
+}
+
+function selectGrape(name) {
+  selected = name;
+  allChip.classList.toggle('active', !name);
+  filterBar.querySelectorAll('.chip[data-grape]').forEach(c => {
+    c.classList.toggle('active', c.dataset.grape === name);
+  });
+  const category = name ? (isRed(name) ? 'hit-red' : 'hit-white') : null;
+  document.querySelectorAll('.region-dot').forEach(dot => {
+    const gr = JSON.parse(dot.dataset.grapes);
+    dot.classList.remove('dim', 'hit-red', 'hit-white', 'comp-red', 'comp-white', 'comp-mixed');
+    if (name && gr.includes(name)) {
+      dot.classList.add(category);
+      dot.parentNode.appendChild(dot);
+    } else if (name) {
+      dot.classList.add('dim');
+    } else {
+      dot.classList.add(dot.dataset.comp);
+    }
+  });
+  updateDotRadii();
+  renderDescription(name);
+}
+
+const wrap = document.getElementById('mapwrap');
+const tooltip = document.getElementById('tooltip');
+const width = wrap.clientWidth || 1040;
+const height = wrap.clientHeight || 560;
+
+const svg = d3.select('#mapwrap').append('svg')
+  .attr('viewBox', `0 0 ${width} ${height}`)
+  .attr('width', '100%').attr('height', '100%').attr('preserveAspectRatio', 'xMidYMid meet');
+
+const g = svg.append('g');
+const projection = d3.geoNaturalEarth1().scale(width / 6.3).translate([width / 2, height / 1.85]);
+const path = d3.geoPath(projection);
+
+const zoom = d3.zoom().scaleExtent([1, 50]).on('zoom', (event) => {
+  g.attr('transform', event.transform);
+  updateDotRadii();
+});
+svg.call(zoom);
+
+document.getElementById('zoomIn').onclick = () => svg.transition().call(zoom.scaleBy, 1.6);
+document.getElementById('zoomOut').onclick = () => svg.transition().call(zoom.scaleBy, 0.63);
+document.getElementById('resetView').onclick = () => svg.transition().call(zoom.transform, d3.zoomIdentity);
+
+d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json').then(world => {
+  wrap.querySelector('.status')?.remove();
+  const countries = topojson.feature(world, world.objects.countries);
+  g.append('g').selectAll('path').data(countries.features).join('path')
+    .attr('d', path).attr('fill', 'var(--map-land)').attr('stroke', 'var(--map-line)').attr('stroke-width', 0.6).attr('vector-effect', 'non-scaling-stroke');
+
+  g.append('g').selectAll('circle').data(REGIONS).join('circle')
+    .attr('class', d => 'region-dot ' + compClass(d.grapes))
+    .attr('data-comp', d => compClass(d.grapes))
+    .attr('data-grapes', d => JSON.stringify(d.grapes))
+    .on('click', (event, d) => { if (d.grapes.length === 1) selectGrape(d.grapes[0]); })
+    .on('mouseenter', (event, d) => {
+      const rect = wrap.getBoundingClientRect();
+      const px = event.clientX - rect.left, py = event.clientY - rect.top;
+      const breadcrumb = d.path.slice(0, -1).join(' \u2192 ');
+      const name = d.path[d.path.length - 1];
+      const cat = compClass(d.grapes).replace('comp-', 'name-');
+      let html = (breadcrumb ? `<div class="path">${breadcrumb}</div>` : '') +
+        `<div class="name ${cat}">${name}</div>` +
+        `<div class="items">${[...d.grapes].sort((a, b) => (isRed(a) - isRed(b)) || a.localeCompare(b)).map(gn => `<div class="grape-item ${isRed(gn) ? 'g-red' : 'g-white'}">${gn}</div>`).join('')}</div>`;
+      if (d.appellations.length) html += `<div class="label">Appellations</div><div class="items">${d.appellations.join(', ')}</div>`;
+      tooltip.innerHTML = html;
+      tooltip.style.opacity = 1;
+      let left = px + 14, top = py + 14;
+      if (left + 270 > rect.width) left = px - 270;
+      tooltip.style.left = left + 'px';
+      tooltip.style.top = top + 'px';
+    })
+    .on('mouseleave', () => { tooltip.style.opacity = 0; });
+
+  updateDotRadii();
+}).catch(() => {
+  wrap.innerHTML = '<div class="status">Map data failed to load (needs internet access to cdn.jsdelivr.net).</div>';
+});
+
+}
+return { init };
+})();
+
+</script>
+<script>
+window.GrapesTableApp = (function() {
+function init(regionsData, grapesData) {
+  const REGIONS = regionsData.regions;
+  const ROWS = grapesData.grapes.map(g => {
+    const regions = REGIONS.filter(r => r.grapes.includes(g.name))
+      .map(r => ({ country: r.path[0], full: r.path.join(' > ') }));
+    return Object.assign({}, g, { regions, regionCount: regions.length,
+      fullText: g.characteristics.join(' | ') });
+  });
+  const EMOJI = {};
+  grapesData.flavorSlots.forEach(s => { EMOJI[s.id] = s.emoji; });
+  const SLOT_IDS = grapesData.flavorSlots.map(s => s.id);
+  const SLOT_LABELS = {};
+  grapesData.flavorSlots.forEach(s => { SLOT_LABELS[s.id] = s.label; });
+  const COUNTRIES = Array.from(new Set(REGIONS.map(r => r.path[0]))).sort();
+
+const POS_LABEL = {climate:{1:'Cool',2:'Moderate',3:'Warm'},
+  acidity:{1:'Low',3:'Medium',5:'High'}, tannins:{1:'Low',3:'Medium',5:'High'},
+  body:{1:'Light',3:'Medium',5:'Full'}, style:{1:'Dry',3:'Medium',5:'Sweet'}};
+const OAK_LABEL = {unoaked:'Unoaked', oaked:'Oaked', both:'Both', none:'No info'};
+
+const COLUMNS = [
+  {key:'name', label:'Grape', sortable:true, filterable:false, cls:'gcol'},
+  {key:'climate', label:'Climate', sortable:true, filterable:'pos', positions:[1,2,3], posLabels:POS_LABEL.climate, cls:'scol'},
+  {key:'acidity', label:'Acidity', sortable:true, filterable:'pos', positions:[1,3,5], posLabels:POS_LABEL.acidity, cls:'scol'},
+  {key:'tannins', label:'Tannins', sortable:true, filterable:'pos', positions:[1,3,5], posLabels:POS_LABEL.tannins, cls:'scol'},
+  {key:'body', label:'Body', sortable:true, filterable:'pos', positions:[1,3,5], posLabels:POS_LABEL.body, cls:'scol'},
+  {key:'style', label:'Style', sortable:true, filterable:'pos', positions:[1,3,5], posLabels:POS_LABEL.style, cls:'scol'},
+  {key:'oaked', label:'Oaked', sortable:true, filterable:'oaked', cls:'scol'},
+  {key:'regions', label:'Regions', sortable:true, filterable:'country', cls:'rcol'},
+  {key:'flavors', label:'Flavours', sortable:true, filterable:'flavor', cls:'fcol'},
+];
+
+let filters = { climate:new Set(), acidity:new Set(), tannins:new Set(), body:new Set(), style:new Set(),
+  oaked:new Set(), country:new Set(), flavor:new Set(), color:new Set(['red','white']) };
+let sortState = { col:null, dir:1 };
+
+function buildHeader() {
+  const tr = document.getElementById('headRow');
+  tr.innerHTML = '';
+  COLUMNS.forEach(col => {
+    const th = document.createElement('th');
+    th.className = col.cls || '';
+    const label = document.createElement('span');
+    label.className = 'hlabel';
+    label.textContent = col.label;
+    label.onclick = () => { toggleSort(col.key); };
+    th.appendChild(label);
+    const arrow = document.createElement('span');
+    arrow.className = 'arrow';
+    arrow.id = 'arrow-' + col.key;
+    th.appendChild(arrow);
+    if (col.filterable) {
+      const btn = document.createElement('button');
+      btn.className = 'fbtn';
+      btn.textContent = '▼';
+      btn.id = 'fbtn-' + col.key;
+      btn.onclick = (e) => { e.stopPropagation(); togglePopover(col.key); };
+      th.appendChild(btn);
+      th.appendChild(buildPopover(col));
+    }
+    tr.appendChild(th);
+  });
+}
+
+function buildPopover(col) {
+  const pop = document.createElement('div');
+  pop.className = 'popover' + (col.filterable==='flavor' ? ' flavpop' : '');
+  pop.id = 'pop-' + col.key;
+  pop.onclick = (e) => e.stopPropagation();
+  if (col.filterable === 'pos') {
+    col.positions.forEach(p => {
+      const lbl = document.createElement('label');
+      const cb = document.createElement('input');
+      cb.type = 'checkbox'; cb.value = p;
+      cb.onchange = () => { toggleFilter(col.key, p, cb.checked); };
+      lbl.appendChild(cb);
+      lbl.appendChild(document.createTextNode(col.posLabels[p]));
+      pop.appendChild(lbl);
+    });
+  } else if (col.filterable === 'oaked') {
+    ['unoaked','oaked','both','none'].forEach(state => {
+      const lbl = document.createElement('label');
+      const cb = document.createElement('input');
+      cb.type = 'checkbox'; cb.value = state;
+      cb.onchange = () => { toggleFilter('oaked', state, cb.checked); };
+      lbl.appendChild(cb);
+      lbl.appendChild(document.createTextNode(OAK_LABEL[state]));
+      pop.appendChild(lbl);
+    });
+  } else if (col.filterable === 'country') {
+    COUNTRIES.forEach(c => {
+      const lbl = document.createElement('label');
+      const cb = document.createElement('input');
+      cb.type = 'checkbox'; cb.value = c;
+      cb.onchange = () => { toggleFilter('country', c, cb.checked); };
+      lbl.appendChild(cb);
+      lbl.appendChild(document.createTextNode(c));
+      pop.appendChild(lbl);
+    });
+  } else if (col.filterable === 'flavor') {
+    SLOT_IDS.forEach(slot => {
+      const lbl = document.createElement('label');
+      const cb = document.createElement('input');
+      cb.type = 'checkbox'; cb.value = slot;
+      cb.onchange = () => { toggleFilter('flavor', slot, cb.checked); };
+      lbl.appendChild(cb);
+      const img = document.createElement('img');
+      img.className = 'picon';
+      img.src = 'data:image/png;base64,' + EMOJI[slot];
+      lbl.appendChild(img);
+      lbl.appendChild(document.createTextNode(SLOT_LABELS[slot]));
+      pop.appendChild(lbl);
+    });
+  }
+  return pop;
+}
+
+function togglePopover(key) {
+  document.querySelectorAll('.popover').forEach(p => { if (p.id !== 'pop-'+key) p.classList.remove('open'); });
+  document.querySelectorAll('.fbtn').forEach(b => { if (b.id !== 'fbtn-'+key) b.classList.remove('active'); });
+  const pop = document.getElementById('pop-'+key);
+  const btn = document.getElementById('fbtn-'+key);
+  pop.classList.toggle('open');
+  btn.classList.toggle('active', pop.classList.contains('open'));
+}
+document.addEventListener('click', () => {
+  document.querySelectorAll('.popover.open').forEach(p => p.classList.remove('open'));
+  document.querySelectorAll('.fbtn.active').forEach(b => b.classList.remove('active'));
+});
+
+function toggleFilter(key, value, checked) {
+  if (checked) filters[key].add(value); else filters[key].delete(value);
+  document.getElementById('fbtn-' + (key==='country'?'regions':(key==='flavor'?'flavors':key)))
+    .classList.toggle('active', filters[key].size > 0);
+  render();
+}
+
+function toggleSort(key) {
+  if (sortState.col === key) { sortState.dir *= -1; }
+  else { sortState.col = key; sortState.dir = 1; }
+  document.querySelectorAll('.arrow').forEach(a => a.textContent = '');
+  document.getElementById('arrow-'+key).textContent = sortState.dir === 1 ? '▲' : '▼';
+  render();
+}
+
+function rangeMatches(range, selectedPositions) {
+  if (selectedPositions.size === 0) return true;
+  if (!range) return false;
+  const [lo, hi] = range;
+  for (const p of selectedPositions) if (p >= lo && p <= hi) return true;
+  return false;
+}
+function climateMatches(positions, selected) {
+  if (selected.size === 0) return true;
+  if (!positions) return false;
+  return positions.some(p => selected.has(p));
+}
+
+function passesFilters(row) {
+  if (!filters.color.has(row.isRed ? 'red' : 'white')) return false;
+  if (!climateMatches(row.climate, filters.climate)) return false;
+  if (!rangeMatches(row.acidity, filters.acidity)) return false;
+  if (!rangeMatches(row.tannins, filters.tannins)) return false;
+  if (!rangeMatches(row.body, filters.body)) return false;
+  if (!rangeMatches(row.style, filters.style)) return false;
+  if (filters.oaked.size > 0 && !filters.oaked.has(row.oaked)) return false;
+  if (filters.country.size > 0 && !row.regions.some(r => filters.country.has(r.country))) return false;
+  if (filters.flavor.size > 0 && !row.flavors.some(f => filters.flavor.has(f))) return false;
+  return true;
+}
+
+const CLIMATE_ANCHOR = {1:1, 2:3, 3:5};
+function climateSortValue(positions) {
+  if (!positions || positions.length === 0) return null;
+  const mapped = positions.map(p => CLIMATE_ANCHOR[p]);
+  return (Math.min(...mapped) + Math.max(...mapped)) / 2;
+}
+function rangeSortValue(range) {
+  if (!range) return null;
+  return (range[0] + range[1]) / 2;
+}
+function sortKey(row, col) {
+  switch(col) {
+    case 'name': return row.name;
+    case 'climate': return climateSortValue(row.climate);
+    case 'acidity': return rangeSortValue(row.acidity);
+    case 'tannins': return rangeSortValue(row.tannins);
+    case 'body': return rangeSortValue(row.body);
+    case 'style': return rangeSortValue(row.style);
+    case 'oaked': return {unoaked:0, both:1, oaked:2, none:null}[row.oaked];
+    case 'regions': return row.regionCount;
+    case 'flavors': return row.flavors.length;
+    default: return row.name;
+  }
+}
+
+function climateSquares(positions) {
+  if (!positions || positions.length === 0) return '';
+  const colors = ['cool','mod','warm'];
+  let html = '';
+  for (let i=1;i<=3;i++) html += `<span class="sq ${positions.includes(i) ? 'on '+colors[i-1] : 'off'}"></span>`;
+  return html;
+}
+function fiveSquares(range, kind) {
+  if (!range) return '';
+  let html = '';
+  for (let i=1;i<=5;i++) html += `<span class="sq ${kind} ${i>=range[0] && i<=range[1] ? 'on' : 'off'}"></span>`;
+  return html;
+}
+
+function renderRow(row) {
+  const tr = document.createElement('tr');
+  tr.title = row.fullText;
+  const oakHtml = (row.oaked==='unoaked' ? '<span class="circ silver on"></span>' : '')
+    + (row.oaked==='oaked' ? '<span class="circ brown on"></span>' : '')
+    + (row.oaked==='both' ? '<span class="circ silver on"></span><span class="circ brown on"></span>' : '');
+  const flavHtml = SLOT_IDS.map(slot => row.flavors.includes(slot)
+      ? `<img class="fic" src="data:image/png;base64,${EMOJI[slot]}" title="${SLOT_LABELS[slot]}">`
+      : `<span class="fic off" title="${SLOT_LABELS[slot]}">&middot;</span>`).join('');
+  const regionHtml = row.regions.map(r => `<span class="rchip">${r.full}</span>`).join('');
+  const tanninsCell = row.isRed ? fiveSquares(row.tannins,'tannins') : fiveSquares(null,'tannins');
+  const tanninsLbl = row.isRed ? (row.tanninsLabel || '') : '';
+
+  tr.innerHTML = `
+    <td class="gname ${row.isRed?'red':'white'}">${row.name} <span class="gcount">(${row.regionCount})</span></td>
+    <td class="scalecell">${climateSquares(row.climate)}<div class="lbl">${row.climateLabel||''}</div></td>
+    <td class="scalecell">${fiveSquares(row.acidity,'acid')}<div class="lbl">${row.acidityLabel||''}</div></td>
+    <td class="scalecell">${tanninsCell}<div class="lbl">${tanninsLbl}</div></td>
+    <td class="scalecell">${fiveSquares(row.body,'body')}<div class="lbl">${row.bodyLabel||''}</div></td>
+    <td class="scalecell">${fiveSquares(row.style,'sweet')}<div class="lbl">${row.styleLabel||''}</div></td>
+    <td class="scalecell">${oakHtml}<div class="lbl">${row.oakedLabel}</div></td>
+    <td class="regioncell">${regionHtml}</td>
+    <td class="flavcell">${flavHtml}</td>
+  `;
+  return tr;
+}
+
+function render() {
+  const visible = ROWS.filter(passesFilters);
+  if (sortState.col) {
+    visible.sort((a,b) => {
+      const ka = sortKey(a, sortState.col), kb = sortKey(b, sortState.col);
+      if (ka === null && kb === null) return 0;
+      if (ka === null) return 1;
+      if (kb === null) return -1;
+      if (ka < kb) return -1 * sortState.dir;
+      if (ka > kb) return 1 * sortState.dir;
+      return 0;
+    });
+  }
+  const tbody = document.getElementById('tbody');
+  tbody.innerHTML = '';
+  visible.forEach(row => tbody.appendChild(renderRow(row)));
+  document.getElementById('resultCount').textContent = `${visible.length} of ${ROWS.length} grapes shown`;
+}
+
+document.querySelectorAll('.colorcb').forEach(cb => {
+  cb.onchange = () => {
+    filters.color = new Set(Array.from(document.querySelectorAll('.colorcb:checked')).map(c => c.value));
+    render();
+  };
+});
+
+document.getElementById('resetBtn').onclick = () => {
+  filters = { climate:new Set(), acidity:new Set(), tannins:new Set(), body:new Set(), style:new Set(),
+    oaked:new Set(), country:new Set(), flavor:new Set(), color:new Set(['red','white']) };
+  sortState = { col:null, dir:1 };
+  document.querySelectorAll('.popover input[type=checkbox]').forEach(cb => cb.checked = false);
+  document.querySelectorAll('.colorcb').forEach(cb => cb.checked = true);
+  document.querySelectorAll('.fbtn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.arrow').forEach(a => a.textContent = '');
+  render();
+};
+
+buildHeader();
+render();
+
+}
+return { init };
+})();
+
+</script>
+<script>
+(function() {
+  Promise.all([
+    fetch('regions.json').then(r => r.json()),
+    fetch('grapes.json').then(r => r.json())
+  ]).then(([regionsData, grapesData]) => {
+    document.getElementById('loadingMsg').style.display = 'none';
+    try { window.AtlasApp.init(regionsData, grapesData); }
+    catch (e) { console.error('Atlas failed to initialize:', e); }
+    try { window.GrapesTableApp.init(regionsData, grapesData); }
+    catch (e) { console.error('Grapes table failed to initialize:', e); }
+  }).catch(err => {
+    document.getElementById('loadingMsg').textContent =
+      'Could not load regions.json / grapes.json. This page must be served over http(s) (a local server or real hosting) -- opening the file directly (file://) blocks these requests in most browsers. Error: ' + err;
+  });
+
+  document.querySelectorAll('.tabbtn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tabbtn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      document.getElementById('view-' + btn.dataset.view).classList.add('active');
+    });
+  });
+})();
+</script>
+</body>
+</html>
