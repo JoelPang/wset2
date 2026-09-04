@@ -169,6 +169,7 @@
 
 
   #view-grapes #wrap { max-width:1650px; margin:0 auto; padding:20px 22px 50px; }
+  #view-grapes .tablewrap { overflow-x:auto; }
   #view-grapes h1 { font-family:Georgia,serif; font-weight:400; font-size:calc(24px * var(--text-scale)); color:var(--wine); margin:0 0 4px; }
   #view-grapes .sub { font-size:calc(12.5px * var(--text-scale)); color:var(--ink-soft); margin:0 0 12px; line-height:1.5; }
   #view-grapes .legend { display:flex; flex-wrap:wrap; gap:12px; font-size:calc(11.5px * var(--text-scale)); color:var(--ink-soft); margin-bottom:10px; align-items:center; }
@@ -231,6 +232,83 @@
   #view-grapes .popover.flavpop { min-width:230px; columns:2; column-gap:6px; }
   #view-grapes .popover .picon { width:12px; height:12px; vertical-align:middle; }
 
+  #view-test {
+    --bg:#faf7f2; --panel:#ffffff; --ink:#2b211c; --ink-soft:#6b5d54; --line:#e4dcd2;
+    --wine:#7a2436; --wine-soft:#f3e2e6; --gold:#b5893a; --gold-soft:#f6ecd7;
+    --cool:#8fb8dd; --mod:#f5e6a8; --warm:#d98f6b;
+    --acid:#a9c98a; --tan:#b79bc4; --body:#a89685; --sweet:#e0a840;
+    --silver:#b9bcbf; --brown:#8a5a33; --empty:#e4dcd2;
+    --stripe:#f7f3ec; --fic-off:#d8d2c6;
+    --correct:#2e6a4f; --correct-bg:rgba(46,106,79,.10);
+    --wrong:#9b1b30; --wrong-bg:rgba(155,27,48,.08);
+    --text-scale: 1.2;
+  }
+  html[data-theme="dark"] #view-test {
+    --bg:#1c1815; --panel:#262019; --ink:#efe8df; --ink-soft:#b3a99c; --line:#3a332c;
+    --wine:#e08a9b; --wine-soft:#3a2229; --gold:#d9ac5e; --gold-soft:#362b16;
+    --cool:#5f8ab5; --mod:#c9ac52; --warm:#b5654a;
+    --acid:#7a9a5c; --tan:#8a6f9b; --body:#7d6d5c; --sweet:#c99a3f;
+    --silver:#8a8d90; --brown:#c9835a; --empty:#3a332c;
+    --stripe:#211c17; --fic-off:#4a423a;
+    --correct:#6fbf95; --correct-bg:rgba(111,191,149,.12);
+    --wrong:#e4788c; --wrong-bg:rgba(228,120,140,.12);
+  }
+
+  #view-test .wrap { max-width:1650px; margin:0 auto; padding:20px 22px 50px; }
+  #view-test .tablewrap { overflow-x:auto; }
+  #view-test h1 { font-family:Georgia,serif; font-weight:400; font-size:calc(24px * var(--text-scale)); color:var(--wine); margin:0 0 4px; }
+  #view-test .sub { font-size:calc(12.5px * var(--text-scale)); color:var(--ink-soft); margin:0 0 12px; line-height:1.5; }
+  #view-test .legend { display:flex; flex-wrap:wrap; gap:12px; font-size:calc(11.5px * var(--text-scale)); color:var(--ink-soft); margin-bottom:10px; align-items:center; }
+  #view-test .legend .sq { width:8px; height:8px; }
+
+  #view-test .toolbar { display:flex; align-items:center; gap:14px; margin-bottom:10px; padding:8px 10px; background:var(--panel); border:1px solid var(--line); border-radius:8px; flex-wrap:wrap; }
+  #view-test .colorfilter { display:flex; gap:10px; font-size:calc(13px * var(--text-scale)); align-items:center; }
+  #view-test .colorfilter label { display:flex; align-items:center; gap:4px; cursor:pointer; }
+  #view-test #resetBtnTest { font-size:calc(13px * var(--text-scale)); padding:5px 12px; border-radius:100px; border:1px solid var(--wine); background:var(--wine); color:#fff; cursor:pointer; }
+  #view-test #resetBtnTest:hover { opacity:0.85; }
+  #view-test #resultCountTest { font-size:calc(12.5px * var(--text-scale)); color:var(--ink-soft); }
+  #view-test #scoreTest { font-size:calc(13px * var(--text-scale)); font-weight:600; color:var(--wine); margin-left:auto; }
+  #view-test .toolrow { display:flex; align-items:center; gap:8px; }
+  #view-test .toolrow span { font-size:calc(12.5px * var(--text-scale)); color:var(--ink-soft); }
+  #view-test .toolrow button { width:30px; height:26px; border-radius:6px; border:1px solid var(--line); background:var(--panel); color:var(--ink); cursor:pointer; font-size:12px; }
+  #view-test .toolrow button:hover { border-color:var(--wine); }
+
+  #view-test table { border-collapse:collapse; width:100%; }
+  #view-test thead th { text-align:left; font-size:calc(11px * var(--text-scale)); text-transform:uppercase; letter-spacing:.03em; color:var(--ink); border-bottom:1.5px solid var(--wine); padding:4px 6px 6px; white-space:nowrap; background:var(--bg); }
+  #view-test td { padding:5px 6px; border-bottom:1px solid var(--line); vertical-align:middle; }
+  #view-test tbody tr:nth-child(even) { background:var(--stripe); }
+  #view-test tbody tr.correct { background:var(--correct-bg); }
+  #view-test tbody tr.incorrect { background:var(--wrong-bg); }
+  #view-test th.scol, #view-test .scalecell { width:82px; }
+  #view-test th.gcol, #view-test .guesscell { width:210px; }
+  #view-test .sq { display:inline-block; width:9px; height:9px; border-radius:2px; margin-right:1.5px; border:1px solid var(--line); vertical-align:middle; }
+  #view-test .sq.off { background:var(--empty); }
+  #view-test .sq.on.cool { background:var(--cool); }
+  #view-test .sq.on.mod { background:var(--mod); }
+  #view-test .sq.on.warm { background:var(--warm); }
+  #view-test .sq.on.acid { background:var(--acid); border-color:var(--acid); }
+  #view-test .sq.on.tannins { background:var(--tan); border-color:var(--tan); }
+  #view-test .sq.on.body { background:var(--body); border-color:var(--body); }
+  #view-test .sq.on.sweet { background:var(--sweet); border-color:var(--sweet); }
+  #view-test .lbl { font-size:calc(9.5px * var(--text-scale)); color:var(--ink-soft); margin-top:2px; white-space:nowrap; }
+  #view-test .circ { display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:2px; border:1px solid #8a8175; vertical-align:middle; }
+  #view-test .circ.off { background:var(--panel); }
+  #view-test .circ.silver.on { background:var(--silver); }
+  #view-test .circ.brown.on { background:var(--brown); }
+  #view-test .flavcell { white-space:nowrap; }
+  #view-test .fic { display:inline-block; width:17px; height:17px; vertical-align:middle; margin-right:4px; }
+  #view-test .fic.off { color:var(--fic-off); font-size:calc(11px * var(--text-scale)); width:17px; text-align:center; }
+  #view-test th.fcol { width:auto; }
+
+  #view-test .guessRow { display:flex; gap:6px; align-items:center; }
+  #view-test .guessSelect { font-size:calc(11px * var(--text-scale)); padding:3px 4px; border-radius:5px; border:1px solid var(--line); background:var(--panel); color:var(--ink); max-width:150px; }
+  #view-test .checkBtn { flex-shrink:0; width:26px; height:26px; border-radius:6px; border:1px solid var(--wine); background:var(--wine); color:#fff; cursor:pointer; font-size:13px; line-height:1; }
+  #view-test .checkBtn:hover { opacity:0.85; }
+  #view-test .feedback { display:block; font-size:calc(10.5px * var(--text-scale)); margin-top:3px; min-height:1.3em; }
+  #view-test .feedback.correct { color:var(--correct); font-weight:600; }
+  #view-test .feedback.incorrect { color:var(--wrong); font-weight:600; }
+  #view-test .feedback.hint { color:var(--ink-soft); font-style:italic; }
+
   #view-questions { height: calc(100dvh - 54px); }
   #view-questions iframe { display: block; width: 100%; height: 100%; border: 0; }
 
@@ -243,6 +321,7 @@
     <div class="tabs">
       <button class="tabbtn active" data-view="atlas">Atlas</button>
       <button class="tabbtn" data-view="grapes">Grapes Table</button>
+      <button class="tabbtn" data-view="test">Grapes Test</button>
       <button class="tabbtn" data-view="questions">Questions</button>
     </div>
     <button id="themeToggle" aria-label="Toggle dark mode"><span id="themeIcon">&#9789;</span> <span id="themeLabel">Dark</span></button>
@@ -310,6 +389,55 @@
       <tr id="headRow"></tr>
     </thead>
     <tbody id="tbody"></tbody>
+  </table>
+  </div>
+</div>
+  </div>
+  <div id="view-test" class="view">
+<div class="wrap">
+  <h1>Grape Characteristics &mdash; Test Yourself</h1>
+  <p class="sub">Same table, minus the grape name and regions. Read the characteristics, pick your answer from the dropdown, then press &#10003; to check.</p>
+  <div class="legend">
+    <span><span class="sq on cool"></span>cool</span>
+    <span><span class="sq on mod"></span>moderate</span>
+    <span><span class="sq on warm"></span>warm</span>
+    <span><span class="sq on acid"></span>acidity low&rarr;high</span>
+    <span><span class="sq on tannins"></span>tannins low&rarr;high (red only)</span>
+    <span><span class="sq on body"></span>body light&rarr;full</span>
+    <span><span class="sq on sweet"></span>style dry&rarr;sweet</span>
+    <span><span class="circ silver on"></span>unoaked <span class="circ brown on"></span>oaked</span>
+  </div>
+
+  <div class="toolbar">
+    <div class="colorfilter">
+      <label><input type="checkbox" class="colorcbTest" value="red" checked> <span style="color:var(--wine)">&#9679; Red</span></label>
+      <label><input type="checkbox" class="colorcbTest" value="white" checked> <span style="color:var(--gold)">&#9679; White</span></label>
+    </div>
+    <button id="resetBtnTest">Reset test</button>
+    <div class="toolrow">
+      <span>Text size</span>
+      <button id="textSmallerTest" aria-label="Decrease text size">A&minus;</button>
+      <button id="textBiggerTest" aria-label="Increase text size">A+</button>
+    </div>
+    <span id="scoreTest"></span>
+    <span id="resultCountTest"></span>
+  </div>
+
+  <div class="tablewrap">
+  <table>
+    <thead>
+      <tr>
+        <th class="gcol">Your guess</th>
+        <th class="scol">Climate</th>
+        <th class="scol">Acidity</th>
+        <th class="scol">Tannins</th>
+        <th class="scol">Body</th>
+        <th class="scol">Style</th>
+        <th class="scol">Oaked</th>
+        <th class="fcol">Flavours</th>
+      </tr>
+    </thead>
+    <tbody id="tbodyTest"></tbody>
   </table>
   </div>
 </div>
@@ -858,6 +986,156 @@ return { init };
 
 </script>
 <script>
+window.GrapesTestApp = (function() {
+function init(regionsData, grapesData) {
+  const ROWS = grapesData.grapes.map(g => Object.assign({}, g));
+  const GRAPE_NAMES = grapesData.grapes.map(g => g.name).sort((a, b) => a.localeCompare(b));
+  const EMOJI = {};
+  grapesData.flavorSlots.forEach(s => { EMOJI[s.id] = s.emoji; });
+  const SLOT_IDS = grapesData.flavorSlots.map(s => s.id);
+  const SLOT_LABELS = {};
+  grapesData.flavorSlots.forEach(s => { SLOT_LABELS[s.id] = s.label; });
+
+  let colorFilter = new Set(['red', 'white']);
+  let attempted = 0, correct = 0;
+
+  function climateSquares(positions) {
+    if (!positions || positions.length === 0) return '';
+    const colors = ['cool', 'mod', 'warm'];
+    let html = '';
+    for (let i = 1; i <= 3; i++) html += `<span class="sq ${positions.includes(i) ? 'on ' + colors[i - 1] : 'off'}"></span>`;
+    return html;
+  }
+  function fiveSquares(range, kind) {
+    if (!range) return '';
+    let html = '';
+    for (let i = 1; i <= 5; i++) html += `<span class="sq ${kind} ${i >= range[0] && i <= range[1] ? 'on' : 'off'}"></span>`;
+    return html;
+  }
+
+  function updateScore() {
+    document.getElementById('scoreTest').textContent = attempted ? `Score: ${correct} / ${attempted}` : '';
+  }
+
+  function renderRow(row) {
+    const tr = document.createElement('tr');
+    const oakHtml = (row.oaked === 'unoaked' ? '<span class="circ silver on"></span>' : '')
+      + (row.oaked === 'oaked' ? '<span class="circ brown on"></span>' : '')
+      + (row.oaked === 'both' ? '<span class="circ silver on"></span><span class="circ brown on"></span>' : '');
+    const flavHtml = SLOT_IDS.map(slot => row.flavors.includes(slot)
+        ? `<img class="fic" src="data:image/png;base64,${EMOJI[slot]}" title="${SLOT_LABELS[slot]}">`
+        : `<span class="fic off" title="${SLOT_LABELS[slot]}">&middot;</span>`).join('');
+    const tanninsCell = row.isRed ? fiveSquares(row.tannins, 'tannins') : fiveSquares(null, 'tannins');
+    const tanninsLbl = row.isRed ? (row.tanninsLabel || '') : '';
+
+    tr.innerHTML = `
+      <td class="scalecell">${climateSquares(row.climate)}<div class="lbl">${row.climateLabel || ''}</div></td>
+      <td class="scalecell">${fiveSquares(row.acidity, 'acid')}<div class="lbl">${row.acidityLabel || ''}</div></td>
+      <td class="scalecell">${tanninsCell}<div class="lbl">${tanninsLbl}</div></td>
+      <td class="scalecell">${fiveSquares(row.body, 'body')}<div class="lbl">${row.bodyLabel || ''}</div></td>
+      <td class="scalecell">${fiveSquares(row.style, 'sweet')}<div class="lbl">${row.styleLabel || ''}</div></td>
+      <td class="scalecell">${oakHtml}<div class="lbl">${row.oakedLabel}</div></td>
+      <td class="flavcell">${flavHtml}</td>
+    `;
+
+    const guessTd = document.createElement('td');
+    guessTd.className = 'guesscell';
+    const guessRow = document.createElement('div');
+    guessRow.className = 'guessRow';
+    const select = document.createElement('select');
+    select.className = 'guessSelect';
+    const placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.textContent = '— choose grape —';
+    select.appendChild(placeholder);
+    GRAPE_NAMES.forEach(n => {
+      const opt = document.createElement('option');
+      opt.value = n;
+      opt.textContent = n;
+      select.appendChild(opt);
+    });
+    const checkBtn = document.createElement('button');
+    checkBtn.className = 'checkBtn';
+    checkBtn.textContent = '✓';
+    checkBtn.title = 'Check answer';
+    const feedback = document.createElement('span');
+    feedback.className = 'feedback';
+
+    select.onchange = () => {
+      feedback.textContent = '';
+      feedback.className = 'feedback';
+      tr.classList.remove('correct', 'incorrect');
+    };
+    checkBtn.onclick = () => {
+      if (!select.value) {
+        feedback.textContent = 'Pick a grape first';
+        feedback.className = 'feedback hint';
+        return;
+      }
+      attempted++;
+      if (select.value === row.name) {
+        correct++;
+        feedback.textContent = '✓ Correct!';
+        feedback.className = 'feedback correct';
+        tr.classList.add('correct');
+        tr.classList.remove('incorrect');
+      } else {
+        feedback.textContent = '✗ It’s ' + row.name;
+        feedback.className = 'feedback incorrect';
+        tr.classList.add('incorrect');
+        tr.classList.remove('correct');
+      }
+      updateScore();
+    };
+
+    guessRow.appendChild(select);
+    guessRow.appendChild(checkBtn);
+    guessTd.appendChild(guessRow);
+    guessTd.appendChild(feedback);
+    tr.insertBefore(guessTd, tr.firstChild);
+    return tr;
+  }
+
+  function render() {
+    const visible = ROWS.filter(r => colorFilter.has(r.isRed ? 'red' : 'white'));
+    const tbody = document.getElementById('tbodyTest');
+    tbody.innerHTML = '';
+    visible.forEach(row => tbody.appendChild(renderRow(row)));
+    document.getElementById('resultCountTest').textContent = `${visible.length} of ${ROWS.length} grapes shown`;
+  }
+
+  document.querySelectorAll('.colorcbTest').forEach(cb => {
+    cb.onchange = () => {
+      colorFilter = new Set(Array.from(document.querySelectorAll('.colorcbTest:checked')).map(c => c.value));
+      render();
+    };
+  });
+
+  document.getElementById('resetBtnTest').onclick = () => {
+    document.querySelectorAll('.colorcbTest').forEach(cb => cb.checked = true);
+    colorFilter = new Set(['red', 'white']);
+    attempted = 0;
+    correct = 0;
+    updateScore();
+    render();
+  };
+
+  let testTextScale = 1.2;
+  function setTestTextScale(v) {
+    testTextScale = Math.min(1.6, Math.max(0.8, Math.round(v * 10) / 10));
+    document.getElementById('view-test').style.setProperty('--text-scale', testTextScale);
+  }
+  document.getElementById('textSmallerTest').onclick = () => setTestTextScale(testTextScale - 0.1);
+  document.getElementById('textBiggerTest').onclick = () => setTestTextScale(testTextScale + 0.1);
+
+  updateScore();
+  render();
+}
+return { init };
+})();
+
+</script>
+<script>
 (function() {
   Promise.all([
     fetch('regions.json').then(r => r.json()),
@@ -868,6 +1146,8 @@ return { init };
     catch (e) { console.error('Atlas failed to initialize:', e); }
     try { window.GrapesTableApp.init(regionsData, grapesData); }
     catch (e) { console.error('Grapes table failed to initialize:', e); }
+    try { window.GrapesTestApp.init(regionsData, grapesData); }
+    catch (e) { console.error('Grapes test failed to initialize:', e); }
   }).catch(err => {
     document.getElementById('loadingMsg').textContent =
       'Could not load regions.json / grapes.json. This page must be served over http(s) (a local server or real hosting) -- opening the file directly (file://) blocks these requests in most browsers. Error: ' + err;
