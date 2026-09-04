@@ -266,6 +266,8 @@
   #view-test .colorfilter label { display:flex; align-items:center; gap:4px; cursor:pointer; }
   #view-test #resetBtnTest { font-size:calc(13px * var(--text-scale)); padding:5px 12px; border-radius:100px; border:1px solid var(--wine); background:var(--wine); color:#fff; cursor:pointer; }
   #view-test #resetBtnTest:hover { opacity:0.85; }
+  #view-test #shuffleBtnTest { font-size:calc(13px * var(--text-scale)); padding:5px 12px; border-radius:100px; border:1px solid var(--line); background:var(--panel); color:var(--ink); cursor:pointer; }
+  #view-test #shuffleBtnTest:hover { border-color:var(--wine); color:var(--wine); }
   #view-test #resultCountTest { font-size:calc(12.5px * var(--text-scale)); color:var(--ink-soft); }
   #view-test #scoreTest { font-size:calc(13px * var(--text-scale)); font-weight:600; color:var(--wine); margin-left:auto; }
   #view-test .toolrow { display:flex; align-items:center; gap:8px; }
@@ -321,8 +323,8 @@
     <div class="tabs">
       <button class="tabbtn active" data-view="atlas">Atlas</button>
       <button class="tabbtn" data-view="grapes">Grapes Table</button>
-      <button class="tabbtn" data-view="test">Grapes Test</button>
       <button class="tabbtn" data-view="questions">Questions</button>
+      <button class="tabbtn" data-view="test">Grapes Test</button>
     </div>
     <button id="themeToggle" aria-label="Toggle dark mode"><span id="themeIcon">&#9789;</span> <span id="themeLabel">Dark</span></button>
   </div>
@@ -393,10 +395,13 @@
   </div>
 </div>
   </div>
+  <div id="view-questions" class="view">
+    <iframe src="wset-level-2-questions.html" title="WSET Level 2 question bank" loading="lazy"></iframe>
+  </div>
   <div id="view-test" class="view">
 <div class="wrap">
   <h1>Grape Characteristics &mdash; Test Yourself</h1>
-  <p class="sub">Same table, minus the grape name and regions. Read the characteristics, pick your answer from the dropdown, then press &#10003; to check.</p>
+  <p class="sub">Same table, minus the grape name and regions. Read the characteristics, pick your answer from the dropdown, then press &#10003; to check. Row order is randomised on load &mdash; use the button below to reshuffle.</p>
   <div class="legend">
     <span><span class="sq on cool"></span>cool</span>
     <span><span class="sq on mod"></span>moderate</span>
@@ -413,6 +418,7 @@
       <label><input type="checkbox" class="colorcbTest" value="red" checked> <span style="color:var(--wine)">&#9679; Red</span></label>
       <label><input type="checkbox" class="colorcbTest" value="white" checked> <span style="color:var(--gold)">&#9679; White</span></label>
     </div>
+    <button id="shuffleBtnTest">&#8635; Randomise order</button>
     <button id="resetBtnTest">Reset test</button>
     <div class="toolrow">
       <span>Text size</span>
@@ -441,9 +447,6 @@
   </table>
   </div>
 </div>
-  </div>
-  <div id="view-questions" class="view">
-    <iframe src="wset-level-2-questions.html" title="WSET Level 2 question bank" loading="lazy"></iframe>
   </div>
 
 <script>
@@ -988,7 +991,7 @@ return { init };
 <script>
 window.GrapesTestApp = (function() {
 function init(regionsData, grapesData) {
-  const ROWS = grapesData.grapes.map(g => Object.assign({}, g));
+  let ROWS = grapesData.grapes.map(g => Object.assign({}, g));
   const GRAPE_NAMES = grapesData.grapes.map(g => g.name).sort((a, b) => a.localeCompare(b));
   const EMOJI = {};
   grapesData.flavorSlots.forEach(s => { EMOJI[s.id] = s.emoji; });
@@ -998,6 +1001,14 @@ function init(regionsData, grapesData) {
 
   let colorFilter = new Set(['red', 'white']);
   let attempted = 0, correct = 0;
+
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
 
   function climateSquares(positions) {
     if (!positions || positions.length === 0) return '';
@@ -1120,6 +1131,11 @@ function init(regionsData, grapesData) {
     render();
   };
 
+  document.getElementById('shuffleBtnTest').onclick = () => {
+    shuffle(ROWS);
+    render();
+  };
+
   let testTextScale = 1.2;
   function setTestTextScale(v) {
     testTextScale = Math.min(1.6, Math.max(0.8, Math.round(v * 10) / 10));
@@ -1128,6 +1144,7 @@ function init(regionsData, grapesData) {
   document.getElementById('textSmallerTest').onclick = () => setTestTextScale(testTextScale - 0.1);
   document.getElementById('textBiggerTest').onclick = () => setTestTextScale(testTextScale + 0.1);
 
+  shuffle(ROWS);
   updateScore();
   render();
 }
