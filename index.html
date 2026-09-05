@@ -276,7 +276,12 @@
   #view-test .toolrow button:hover { border-color:var(--wine); }
 
   #view-test table { border-collapse:collapse; width:100%; }
-  #view-test thead th { text-align:left; font-size:calc(11px * var(--text-scale)); text-transform:uppercase; letter-spacing:.03em; color:var(--ink); border-bottom:1.5px solid var(--wine); padding:4px 6px 6px; white-space:nowrap; background:var(--bg); }
+  #view-test thead th { text-align:left; font-size:calc(11px * var(--text-scale)); text-transform:uppercase; letter-spacing:.03em; color:var(--ink); border-bottom:1.5px solid var(--wine); padding:4px 6px 6px; position:relative; white-space:nowrap; background:var(--bg); }
+  #view-test th .hlabel { cursor:pointer; user-select:none; }
+  #view-test th .hlabel:hover { color:var(--wine); }
+  #view-test th .arrow { font-size:calc(9.5px * var(--text-scale)); margin-left:2px; color:var(--wine); }
+  #view-test th .fbtn { cursor:pointer; border:1px solid var(--line); background:var(--panel); border-radius:4px; font-size:calc(9.5px * var(--text-scale)); padding:0px 4px; margin-left:4px; color:var(--ink-soft); }
+  #view-test th .fbtn.active { background:var(--wine); color:#fff; border-color:var(--wine); }
   #view-test td { padding:5px 6px; border-bottom:1px solid var(--line); vertical-align:middle; }
   #view-test tbody tr:nth-child(even) { background:var(--stripe); }
   #view-test tbody tr.correct { background:var(--correct-bg); }
@@ -310,6 +315,13 @@
   #view-test .feedback.correct { color:var(--correct); font-weight:600; }
   #view-test .feedback.incorrect { color:var(--wrong); font-weight:600; }
   #view-test .feedback.hint { color:var(--ink-soft); font-style:italic; }
+
+  #view-test .popover { display:none; position:absolute; top:100%; left:0; z-index:20; background:var(--panel); border:1px solid var(--line); border-radius:8px; box-shadow:0 6px 20px rgba(0,0,0,0.15); padding:8px; margin-top:4px; max-height:260px; overflow-y:auto; min-width:150px; }
+  #view-test .popover.open { display:block; }
+  #view-test .popover label { display:flex; align-items:center; gap:5px; font-size:calc(12px * var(--text-scale)); font-weight:400; text-transform:none; letter-spacing:0; color:var(--ink); padding:2px 3px; cursor:pointer; white-space:nowrap; }
+  #view-test .popover label:hover { background:var(--bg); border-radius:4px; }
+  #view-test .popover.flavpop { min-width:230px; columns:2; column-gap:6px; }
+  #view-test .popover .picon { width:12px; height:12px; vertical-align:middle; }
 
   #view-questions { height: calc(100dvh - 54px); }
   #view-questions iframe { display: block; width: 100%; height: 100%; border: 0; }
@@ -401,7 +413,7 @@
   <div id="view-test" class="view">
 <div class="wrap">
   <h1>Grape Characteristics &mdash; Test Yourself</h1>
-  <p class="sub">Same table, minus the grape name and regions. Read the characteristics, pick your answer from the dropdown, then press &#10003; to check. Row order is randomised on load &mdash; use the button below to reshuffle.</p>
+  <p class="sub">Same table, minus the grape name and regions. Read the characteristics, pick your answer from the dropdown, then press &#10003; to check. Row order is randomised on load &mdash; use the button below to reshuffle. Click a column heading to sort; click the &#9660; button to filter by that column.</p>
   <div class="legend">
     <span><span class="sq on cool"></span>cool</span>
     <span><span class="sq on mod"></span>moderate</span>
@@ -432,16 +444,7 @@
   <div class="tablewrap">
   <table>
     <thead>
-      <tr>
-        <th class="gcol">Your guess</th>
-        <th class="scol">Climate</th>
-        <th class="scol">Acidity</th>
-        <th class="scol">Tannins</th>
-        <th class="scol">Body</th>
-        <th class="scol">Style</th>
-        <th class="scol">Oaked</th>
-        <th class="fcol">Flavours</th>
-      </tr>
+      <tr id="headRowTest"></tr>
     </thead>
     <tbody id="tbodyTest"></tbody>
   </table>
@@ -1000,8 +1003,8 @@ function init(regionsData, grapesData) {
   const SLOT_LABELS = {};
   grapesData.flavorSlots.forEach(s => { SLOT_LABELS[s.id] = s.label; });
 
-  let colorFilter = new Set(['red', 'white']);
   let attempted = 0, correct = 0;
+  const ID_PREFIX = 'test-';
 
   function shuffle(arr) {
     for (let i = arr.length - 1; i > 0; i--) {
@@ -1009,6 +1012,172 @@ function init(regionsData, grapesData) {
       [arr[i], arr[j]] = [arr[j], arr[i]];
     }
     return arr;
+  }
+
+  const POS_LABEL = {climate:{1:'Cool',2:'Moderate',3:'Warm'},
+    acidity:{1:'Low',3:'Medium',5:'High'}, tannins:{1:'Low',3:'Medium',5:'High'},
+    body:{1:'Light',3:'Medium',5:'Full'}, style:{1:'Dry',3:'Medium',5:'Sweet'}};
+  const OAK_LABEL = {unoaked:'Unoaked', oaked:'Oaked', both:'Both', none:'No info'};
+
+  const COLUMNS = [
+    {key:'climate', label:'Climate', filterable:'pos', positions:[1,2,3], posLabels:POS_LABEL.climate, cls:'scol'},
+    {key:'acidity', label:'Acidity', filterable:'pos', positions:[1,3,5], posLabels:POS_LABEL.acidity, cls:'scol'},
+    {key:'tannins', label:'Tannins', filterable:'pos', positions:[1,3,5], posLabels:POS_LABEL.tannins, cls:'scol'},
+    {key:'body', label:'Body', filterable:'pos', positions:[1,3,5], posLabels:POS_LABEL.body, cls:'scol'},
+    {key:'style', label:'Style', filterable:'pos', positions:[1,3,5], posLabels:POS_LABEL.style, cls:'scol'},
+    {key:'oaked', label:'Oaked', filterable:'oaked', cls:'scol'},
+    {key:'flavors', label:'Flavours', filterable:'flavor', cls:'fcol'},
+  ];
+
+  let filters = { climate:new Set(), acidity:new Set(), tannins:new Set(), body:new Set(), style:new Set(),
+    oaked:new Set(), flavor:new Set(), color:new Set(['red','white']) };
+  let sortState = { col:null, dir:1 };
+
+  function buildHeader() {
+    const tr = document.getElementById('headRowTest');
+    tr.innerHTML = '';
+    const guessTh = document.createElement('th');
+    guessTh.className = 'gcol';
+    guessTh.textContent = 'Your guess';
+    tr.appendChild(guessTh);
+    COLUMNS.forEach(col => {
+      const th = document.createElement('th');
+      th.className = col.cls || '';
+      const label = document.createElement('span');
+      label.className = 'hlabel';
+      label.textContent = col.label;
+      label.onclick = () => { toggleSort(col.key); };
+      th.appendChild(label);
+      const arrow = document.createElement('span');
+      arrow.className = 'arrow';
+      arrow.id = 'arrow-' + ID_PREFIX + col.key;
+      th.appendChild(arrow);
+      if (col.filterable) {
+        const btn = document.createElement('button');
+        btn.className = 'fbtn';
+        btn.textContent = '▼';
+        btn.id = 'fbtn-' + ID_PREFIX + col.key;
+        btn.onclick = (e) => { e.stopPropagation(); togglePopover(col.key); };
+        th.appendChild(btn);
+        th.appendChild(buildPopover(col));
+      }
+      tr.appendChild(th);
+    });
+  }
+
+  function buildPopover(col) {
+    const pop = document.createElement('div');
+    pop.className = 'popover' + (col.filterable === 'flavor' ? ' flavpop' : '');
+    pop.id = 'pop-' + ID_PREFIX + col.key;
+    pop.onclick = (e) => e.stopPropagation();
+    if (col.filterable === 'pos') {
+      col.positions.forEach(p => {
+        const lbl = document.createElement('label');
+        const cb = document.createElement('input');
+        cb.type = 'checkbox'; cb.value = p;
+        cb.onchange = () => { toggleFilter(col.key, p, cb.checked); };
+        lbl.appendChild(cb);
+        lbl.appendChild(document.createTextNode(col.posLabels[p]));
+        pop.appendChild(lbl);
+      });
+    } else if (col.filterable === 'oaked') {
+      ['unoaked', 'oaked', 'both', 'none'].forEach(state => {
+        const lbl = document.createElement('label');
+        const cb = document.createElement('input');
+        cb.type = 'checkbox'; cb.value = state;
+        cb.onchange = () => { toggleFilter('oaked', state, cb.checked); };
+        lbl.appendChild(cb);
+        lbl.appendChild(document.createTextNode(OAK_LABEL[state]));
+        pop.appendChild(lbl);
+      });
+    } else if (col.filterable === 'flavor') {
+      SLOT_IDS.forEach(slot => {
+        const lbl = document.createElement('label');
+        const cb = document.createElement('input');
+        cb.type = 'checkbox'; cb.value = slot;
+        cb.onchange = () => { toggleFilter('flavor', slot, cb.checked); };
+        lbl.appendChild(cb);
+        const img = document.createElement('img');
+        img.className = 'picon';
+        img.src = 'data:image/png;base64,' + EMOJI[slot];
+        lbl.appendChild(img);
+        lbl.appendChild(document.createTextNode(SLOT_LABELS[slot]));
+        pop.appendChild(lbl);
+      });
+    }
+    return pop;
+  }
+
+  function togglePopover(key) {
+    document.querySelectorAll('.popover').forEach(p => { if (p.id !== 'pop-' + ID_PREFIX + key) p.classList.remove('open'); });
+    document.querySelectorAll('.fbtn').forEach(b => { if (b.id !== 'fbtn-' + ID_PREFIX + key) b.classList.remove('active'); });
+    const pop = document.getElementById('pop-' + ID_PREFIX + key);
+    const btn = document.getElementById('fbtn-' + ID_PREFIX + key);
+    pop.classList.toggle('open');
+    btn.classList.toggle('active', pop.classList.contains('open'));
+  }
+
+  function toggleFilter(key, value, checked) {
+    if (checked) filters[key].add(value); else filters[key].delete(value);
+    const btnKey = key === 'flavor' ? 'flavors' : key;
+    document.getElementById('fbtn-' + ID_PREFIX + btnKey).classList.toggle('active', filters[key].size > 0);
+    render();
+  }
+
+  function toggleSort(key) {
+    if (sortState.col === key) { sortState.dir *= -1; }
+    else { sortState.col = key; sortState.dir = 1; }
+    document.querySelectorAll('#view-test .arrow').forEach(a => a.textContent = '');
+    document.getElementById('arrow-' + ID_PREFIX + key).textContent = sortState.dir === 1 ? '▲' : '▼';
+    render();
+  }
+
+  function rangeMatches(range, selectedPositions) {
+    if (selectedPositions.size === 0) return true;
+    if (!range) return false;
+    const [lo, hi] = range;
+    for (const p of selectedPositions) if (p >= lo && p <= hi) return true;
+    return false;
+  }
+  function climateMatches(positions, selected) {
+    if (selected.size === 0) return true;
+    if (!positions) return false;
+    return positions.some(p => selected.has(p));
+  }
+
+  function passesFilters(row) {
+    if (!filters.color.has(row.isRed ? 'red' : 'white')) return false;
+    if (!climateMatches(row.climate, filters.climate)) return false;
+    if (!rangeMatches(row.acidity, filters.acidity)) return false;
+    if (!rangeMatches(row.tannins, filters.tannins)) return false;
+    if (!rangeMatches(row.body, filters.body)) return false;
+    if (!rangeMatches(row.style, filters.style)) return false;
+    if (filters.oaked.size > 0 && !filters.oaked.has(row.oaked)) return false;
+    if (filters.flavor.size > 0 && !row.flavors.some(f => filters.flavor.has(f))) return false;
+    return true;
+  }
+
+  const CLIMATE_ANCHOR = {1:1, 2:3, 3:5};
+  function climateSortValue(positions) {
+    if (!positions || positions.length === 0) return null;
+    const mapped = positions.map(p => CLIMATE_ANCHOR[p]);
+    return (Math.min(...mapped) + Math.max(...mapped)) / 2;
+  }
+  function rangeSortValue(range) {
+    if (!range) return null;
+    return (range[0] + range[1]) / 2;
+  }
+  function sortKey(row, col) {
+    switch (col) {
+      case 'climate': return climateSortValue(row.climate);
+      case 'acidity': return rangeSortValue(row.acidity);
+      case 'tannins': return rangeSortValue(row.tannins);
+      case 'body': return rangeSortValue(row.body);
+      case 'style': return rangeSortValue(row.style);
+      case 'oaked': return {unoaked:0, both:1, oaked:2, none:null}[row.oaked];
+      case 'flavors': return row.flavors.length;
+      default: return null;
+    }
   }
 
   function climateSquares(positions) {
@@ -1110,7 +1279,18 @@ function init(regionsData, grapesData) {
   }
 
   function render() {
-    const visible = ROWS.filter(r => colorFilter.has(r.isRed ? 'red' : 'white'));
+    const visible = ROWS.filter(passesFilters);
+    if (sortState.col) {
+      visible.sort((a, b) => {
+        const ka = sortKey(a, sortState.col), kb = sortKey(b, sortState.col);
+        if (ka === null && kb === null) return 0;
+        if (ka === null) return 1;
+        if (kb === null) return -1;
+        if (ka < kb) return -1 * sortState.dir;
+        if (ka > kb) return 1 * sortState.dir;
+        return 0;
+      });
+    }
     const tbody = document.getElementById('tbodyTest');
     tbody.innerHTML = '';
     visible.forEach(row => tbody.appendChild(renderRow(row)));
@@ -1119,14 +1299,19 @@ function init(regionsData, grapesData) {
 
   document.querySelectorAll('.colorcbTest').forEach(cb => {
     cb.onchange = () => {
-      colorFilter = new Set(Array.from(document.querySelectorAll('.colorcbTest:checked')).map(c => c.value));
+      filters.color = new Set(Array.from(document.querySelectorAll('.colorcbTest:checked')).map(c => c.value));
       render();
     };
   });
 
   document.getElementById('resetBtnTest').onclick = () => {
+    filters = { climate:new Set(), acidity:new Set(), tannins:new Set(), body:new Set(), style:new Set(),
+      oaked:new Set(), flavor:new Set(), color:new Set(['red','white']) };
+    sortState = { col:null, dir:1 };
+    document.querySelectorAll('#view-test .popover input[type=checkbox]').forEach(cb => cb.checked = false);
     document.querySelectorAll('.colorcbTest').forEach(cb => cb.checked = true);
-    colorFilter = new Set(['red', 'white']);
+    document.querySelectorAll('#view-test .fbtn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('#view-test .arrow').forEach(a => a.textContent = '');
     attempted = 0;
     correct = 0;
     updateScore();
@@ -1147,6 +1332,7 @@ function init(regionsData, grapesData) {
   document.getElementById('textBiggerTest').onclick = () => setTestTextScale(testTextScale + 0.1);
 
   shuffle(ROWS);
+  buildHeader();
   updateScore();
   render();
 }
