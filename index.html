@@ -992,7 +992,8 @@ return { init };
 window.GrapesTestApp = (function() {
 function init(regionsData, grapesData) {
   let ROWS = grapesData.grapes.map(g => Object.assign({}, g));
-  const GRAPE_NAMES = grapesData.grapes.map(g => g.name).sort((a, b) => a.localeCompare(b));
+  const RED_NAMES = grapesData.grapes.filter(g => g.isRed).map(g => g.name).sort((a, b) => a.localeCompare(b));
+  const WHITE_NAMES = grapesData.grapes.filter(g => !g.isRed).map(g => g.name).sort((a, b) => a.localeCompare(b));
   const EMOJI = {};
   grapesData.flavorSlots.forEach(s => { EMOJI[s.id] = s.emoji; });
   const SLOT_IDS = grapesData.flavorSlots.map(s => s.id);
@@ -1059,7 +1060,8 @@ function init(regionsData, grapesData) {
     placeholder.value = '';
     placeholder.textContent = '— choose grape —';
     select.appendChild(placeholder);
-    GRAPE_NAMES.forEach(n => {
+    const optionNames = row.isRed ? RED_NAMES : WHITE_NAMES;
+    optionNames.forEach(n => {
       const opt = document.createElement('option');
       opt.value = n;
       opt.textContent = n;
