@@ -1005,6 +1005,7 @@ function init(regionsData, grapesData) {
   grapesData.flavorSlots.forEach(s => { SLOT_LABELS[s.id] = s.label; });
 
   let attempted = 0, correct = 0;
+  let rowState = {};
   const ID_PREFIX = 'test-';
 
   function shuffle(arr) {
@@ -1244,10 +1245,29 @@ function init(regionsData, grapesData) {
     const feedback = document.createElement('span');
     feedback.className = 'feedback';
 
+    // Restore any earlier guess/result for this grape -- sorting, filtering,
+    // and shuffling all rebuild the table, but shouldn't lose progress.
+    const saved = rowState[row.name];
+    if (saved) {
+      select.value = saved.selected || '';
+      if (saved.checked) {
+        if (saved.wasCorrect) {
+          feedback.textContent = '✓ Correct!';
+          feedback.className = 'feedback correct';
+          tr.classList.add('correct');
+        } else {
+          feedback.textContent = '✗ It’s ' + row.name;
+          feedback.className = 'feedback incorrect';
+          tr.classList.add('incorrect');
+        }
+      }
+    }
+
     select.onchange = () => {
       feedback.textContent = '';
       feedback.className = 'feedback';
       tr.classList.remove('correct', 'incorrect');
+      rowState[row.name] = { selected: select.value, checked: false, wasCorrect: null };
     };
     checkBtn.onclick = () => {
       if (!select.value) {
@@ -1256,7 +1276,8 @@ function init(regionsData, grapesData) {
         return;
       }
       attempted++;
-      if (select.value === row.name) {
+      const isCorrect = select.value === row.name;
+      if (isCorrect) {
         correct++;
         feedback.textContent = '✓ Correct!';
         feedback.className = 'feedback correct';
@@ -1268,6 +1289,7 @@ function init(regionsData, grapesData) {
         tr.classList.add('incorrect');
         tr.classList.remove('correct');
       }
+      rowState[row.name] = { selected: select.value, checked: true, wasCorrect: isCorrect };
       updateScore();
     };
 
@@ -1315,6 +1337,7 @@ function init(regionsData, grapesData) {
     document.querySelectorAll('#view-test .arrow').forEach(a => a.textContent = '');
     attempted = 0;
     correct = 0;
+    rowState = {};
     updateScore();
     render();
   };
