@@ -195,6 +195,7 @@ body.quiz #quiz{display:flex}
     <div class="modes" id="modes">
       <button id="modeTopic" aria-pressed="true">By grape and chapter</button>
       <button id="modeType" aria-pressed="false">By question type</button>
+      <button id="modeFlat" aria-pressed="false">No grouping</button>
     </div>
     <div class="jump" id="jump"></div>
     <div id="sections"></div>
@@ -335,6 +336,21 @@ if(mode==='type'){
   wrap.appendChild(list); secHost.appendChild(wrap);
   return;
 }
+if(mode==='flat'){
+  const wrap=document.createElement('section'); wrap.className='sec';
+  wrap.style.setProperty('--hue','var(--h0)'); wrap.style.setProperty('--hue-soft','var(--h0s)');
+  const list=document.createElement('div'); list.className='list';
+  const qs=DATA.questions, sc=tally(qs);
+  const b=document.createElement('button');
+  b.innerHTML='<span class="tick"></span><span class="t"></span>'+
+    (sc.answered?'<span class="sc">'+sc.right+'/'+sc.answered+'</span>':'')+
+    '<span class="n">'+qs.length+'</span>';
+  b.querySelector('.t').textContent='All questions';
+  b.onclick=()=>open_({kind:'all'});
+  list.appendChild(b);
+  wrap.appendChild(list); secHost.appendChild(wrap);
+  return;
+}
 DATA.sections.forEach((s,i)=>{
   const wrap=document.createElement('section');
   wrap.className='sec';
@@ -362,10 +378,12 @@ function setMode(m){
   mode=m;
   document.getElementById('modeTopic').setAttribute('aria-pressed',String(m==='topic'));
   document.getElementById('modeType').setAttribute('aria-pressed',String(m==='type'));
+  document.getElementById('modeFlat').setAttribute('aria-pressed',String(m==='flat'));
   renderContents();
 }
 document.getElementById('modeTopic').onclick=()=>setMode('topic');
 document.getElementById('modeType').onclick=()=>setMode('type');
+document.getElementById('modeFlat').onclick=()=>setMode('flat');
 const hideBox=document.getElementById('hideLabels');
 hideBox.checked=hideLabels;
 hideBox.onchange=()=>{
