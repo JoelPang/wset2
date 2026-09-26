@@ -42,6 +42,8 @@
   .view { display: none; }
   .view.active { display: block; }
   #loadingMsg { padding: 40px; text-align: center; color: var(--page-tabbtn-ink); font-size: 13px; }
+  .disclaimer { max-width: 1650px; margin: 0 auto; padding: 18px 22px 30px; border-top: 1px solid var(--page-tabbtn-line);
+    color: var(--page-tabbtn-ink); font-size: 12px; line-height: 1.6; font-style: italic; }
 
   #view-atlas {
     --bg: #faf7f2; --panel: #ffffff; --ink: #2b211c; --ink-soft: #6b5d54;
@@ -372,7 +374,6 @@
   <div id="view-grapes" class="view">
 <div id="wrap">
   <h1>Grape Characteristics &mdash; Interactive Reference</h1>
-  <p class="sub">All 30 grapes. Hover any row for the full characteristics text. Flavour icons sit at a fixed position across every row. Click a column heading to sort; click the &#9660; button to filter by that column (multi-select &mdash; matches if any checked value applies). Scale filters match by position, so "High" also matches ranges like "medium to high".</p>
   <div class="legend">
     <span><span class="sq on cool"></span>cool</span>
     <span><span class="sq on mod"></span>moderate</span>
@@ -414,7 +415,6 @@
   <div id="view-test" class="view">
 <div class="wrap">
   <h1>Grape Characteristics &mdash; Test Yourself</h1>
-  <p class="sub">Same table, minus the grape name and regions. Read the characteristics, pick your answer from the dropdown, then press &#10003; to check. Row order is randomised on load &mdash; use the button below to reshuffle. Click a column heading to sort; click the &#9660; button to filter by that column.</p>
   <div class="legend">
     <span><span class="sq on cool"></span>cool</span>
     <span><span class="sq on mod"></span>moderate</span>
@@ -452,6 +452,7 @@
   </div>
 </div>
   </div>
+  <footer class="disclaimer">The content here does not belong to me. It was derived from the official WSET 2 syllabus and the practice questions in a hurried fashion, so expect some minor inaccuracies &mdash; the aim was to quickly summarize the relevant information necessary for passing the test.</footer>
 
 <script>
 window.AtlasApp = (function() {

@@ -186,7 +186,6 @@ body.quiz #quiz{display:flex}
   <div class="wrap">
     <div class="masthead">
       <h1>Level 2 <em>question bank</em></h1>
-      <p>Three hundred questions from the practice paper and the mock test. Move through them at your own pace — nothing needs answering to go forward, and the answer stays hidden until you ask for it.</p>
     </div>
     <div class="scorepanel">
       <span class="fig" id="scoreLine"></span>
@@ -205,7 +204,7 @@ body.quiz #quiz{display:flex}
       <label class="opt-row"><input type="checkbox" id="shuffleOrder">
         Random question order (reshuffles each time you open a list)</label>
     </div>
-    <p class="colophon" id="colophon"></p>
+    <p class="colophon" id="colophon">The content here does not belong to me. It was derived from the official WSET 2 syllabus and the practice questions in a hurried fashion, so expect some minor inaccuracies &mdash; the aim was to quickly summarize the relevant information necessary for passing the test.</p>
   </div>
 </div>
 
@@ -306,7 +305,7 @@ jump.innerHTML=''; secHost.innerHTML='';
 const all=tally(DATA.questions);
 const line=document.getElementById('scoreLine');
 if(all.answered===0){
-  line.innerHTML='Nothing answered yet. Pick an option to record it; revealing the answer first leaves the question unscored.';
+  line.innerHTML='';
 }else{
   line.innerHTML='<b>'+all.right+'</b> right, <b>'+all.wrong+'</b> wrong of <b>'+all.answered+
     '</b> answered — <b>'+Math.round(all.right/all.answered*100)+'%</b>'+
@@ -404,9 +403,6 @@ document.getElementById('reset').onclick=()=>{
   results={}; save(); renderContents();
   if(document.body.classList.contains('quiz')) render();
 };
-document.getElementById('colophon').textContent =
-  'Questions and answers are reproduced from the two papers you supplied: the 250-question practice exam, which carries its own chapter headings, and the 50-question mock test, which does not — its questions have been sorted into the same chapters by subject.';
-
 /* ---------- question view ---------- */
 let view=null, list=[], i=0, picked=null, shown=false;
 const el = id=>document.getElementById(id);
